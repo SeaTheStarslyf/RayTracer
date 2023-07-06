@@ -6,18 +6,18 @@ use std::{fs::File, process::exit};
 struct Vec3(f64, f64, f64);
 
 struct Ray {
-    ori: Vec3,
+    //    ori: Vec3,
     dir: Vec3,
 }
 
 impl Ray {
-    fn at(&self, t: f64) -> Vec3 {
+    /*     fn at(&self, t: f64) -> Vec3 {
         Vec3(
             self.ori.0 + self.dir.0 * t,
             self.ori.1 + self.dir.1 * t,
             self.ori.2 + self.dir.2 * t,
         )
-    }
+    }*/
     fn ray_color(&self) -> Vec3 {
         let length: f64 =
             (self.dir.0 * self.dir.0 + self.dir.1 * self.dir.1 + self.dir.2 * self.dir.2).sqrt();
@@ -46,16 +46,16 @@ fn main() {
         ProgressBar::new((height * width) as u64)
     };
 
-    let origin = Vec3(0.0, 0.0, 0.0);
+    //    let origin = Vec3(0.0, 0.0, 0.0);
     for j in (0..height).rev() {
         for i in 0..width {
             let pixel = img.get_pixel_mut(i, j);
             let u = (i as f64) / (width as f64);
             let v: f64 = (j as f64) / (height as f64);
-            let dir = Vec3(-2.0 + u * 4.0, -1.0 + v * 2.0, -1.0);
+            let direction = Vec3(-2.0 + u * 4.0, -1.0 + v * 2.0, -1.0);
             let r = Ray {
-                ori: Vec3(origin.0, origin.1, origin.2),
-                dir: dir,
+                //                ori: Vec3(origin.0, origin.1, origin.2),
+                dir: direction,
             };
             let color = r.ray_color();
             let r: f64 = color.0 * 255.999;
