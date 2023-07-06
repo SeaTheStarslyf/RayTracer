@@ -16,30 +16,39 @@ fn dot(a: Vec3, b: Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
-fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> bool {
+fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> f64 {
     let oc = Vec3(r.ori.0 - center.0, r.ori.1 - center.1, r.ori.2 - center.2);
     let a: f64 = dot(r.dir, r.dir);
     let b: f64 = 2.0 * dot(oc, r.dir);
     let c: f64 = dot(oc, oc) - radius * radius;
     let discriminant: f64 = b * b - 4.0 * a * c;
-    discriminant > 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 impl Ray {
-    /*         fn at(&self, t: f64) -> Vec3 {
+    fn at(&self, t: f64) -> Vec3 {
         Vec3(
             self.ori.0 + self.dir.0 * t,
             self.ori.1 + self.dir.1 * t,
             self.ori.2 + self.dir.2 * t,
         )
-    }*/
+    }
     fn ray_color(&self) -> Vec3 {
         let r = Ray {
             ori: self.ori,
             dir: self.dir,
         };
-        if hit_sphere(Vec3(0.0, 0.0, -1.0), 0.5, r) {
-            return Vec3(1.0, 0.0, 0.0);
+        let t: f64 = hit_sphere(Vec3(0.0, 0.0, -1.0), 0.5, r);
+        if t > 0.0 {
+            let mut ray = r.at(t);
+            ray.2 += 1.0;
+            let length: f64 = dot(ray, ray).sqrt();
+            let n = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
+            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
         }
         let length: f64 =
             (self.dir.0 * self.dir.0 + self.dir.1 * self.dir.1 + self.dir.2 * self.dir.2).sqrt();
@@ -53,7 +62,7 @@ impl Ray {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image3.jpg");
+    let path = std::path::Path::new("output/book1/image4.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
