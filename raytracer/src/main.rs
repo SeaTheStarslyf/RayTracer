@@ -22,7 +22,6 @@ fn main() {
     for j in (0..height).rev() {
         for i in 0..width {
             let pixel = img.get_pixel_mut(i, height - 1 - j);
-
             let r: f64 = (i as f64) / ((width - 1) as f64) * 255.999;
             let g: f64 = (j as f64) / ((height - 1) as f64) * 255.999;
             let b: f64 = 0.25 * 255.999;
