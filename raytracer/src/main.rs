@@ -18,9 +18,9 @@ fn dot(a: Vec3, b: Vec3) -> f64 {
 
 fn hit_sphere(center: Vec3, radius: f64, r: Ray) -> bool {
     let oc = Vec3(r.ori.0 - center.0, r.ori.1 - center.1, r.ori.2 - center.2);
-    let a: f64 = dot(r.dir.clone(), r.dir.clone());
-    let b: f64 = 2.0 * dot(oc.clone(), r.dir.clone());
-    let c: f64 = dot(oc.clone(), oc.clone()) - radius * radius;
+    let a: f64 = dot(r.dir, r.dir);
+    let b: f64 = 2.0 * dot(oc, r.dir);
+    let c: f64 = dot(oc, oc) - radius * radius;
     let discriminant: f64 = b * b - 4.0 * a * c;
     discriminant > 0.0
 }
@@ -35,8 +35,8 @@ impl Ray {
     }*/
     fn ray_color(&self) -> Vec3 {
         let r = Ray {
-            ori: self.ori.clone(),
-            dir: self.dir.clone(),
+            ori: self.ori,
+            dir: self.dir,
         };
         if hit_sphere(Vec3(0.0, 0.0, -1.0), 0.5, r) {
             return Vec3(1.0, 0.0, 0.0);
