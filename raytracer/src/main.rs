@@ -1,6 +1,7 @@
 use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
+use rand::Rng;
 use std::{fs::File, process::exit};
 
 #[derive(Copy, Clone)]
@@ -26,6 +27,13 @@ struct Which {
 
 fn dot(a: Vec3, b: Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
+}
+fn random_double(min: f64, max: f64) -> f64 {
+    let mut rng = rand::thread_rng();
+    min + (max - min) * rng.gen::<f64>()
+}
+fn add(a: Vec3, b: Vec3) -> Vec3 {
+    Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
 }
 
 fn hit_sphere(v: Vec<Ball>, r: Ray) -> Which {
@@ -92,13 +100,14 @@ impl Ray {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image5.jpg");
+    let path = std::path::Path::new("output/book1/image6.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
     let width = 200;
     let height = 100;
     let quality = 100;
+    let samples_per_pixel = 100;
     let mut img: RgbImage = ImageBuffer::new(width, height);
     let mut v: Vec<Ball> = Vec::new();
 
@@ -121,17 +130,21 @@ fn main() {
     for j in (0..height).rev() {
         for i in 0..width {
             let pixel = img.get_pixel_mut(i, height - 1 - j);
-            let u = (i as f64) / (width as f64);
-            let w: f64 = (j as f64) / (height as f64);
-            let direction = Vec3(-2.0 + u * 4.0, -1.0 + w * 2.0, -1.0);
-            let r = Ray {
-                ori: Vec3(origin.0, origin.1, origin.2),
-                dir: direction,
-            };
-            let color = r.ray_color(v.clone());
-            let r: f64 = color.0 * 255.999;
-            let g: f64 = color.1 * 255.999;
-            let b: f64 = color.2 * 255.999;
+            let mut colorend = Vec3(0.0, 0.0, 0.0);
+            for _s in 0..samples_per_pixel {
+                let u: f64 = (i as f64 + random_double(0.0, 1.0)) / (width as f64);
+                let w: f64 = (j as f64 + random_double(0.0, 1.0)) / (height as f64);
+                let direction = Vec3(-2.0 + u * 4.0, -1.0 + w * 2.0, -1.0);
+                let r = Ray {
+                    ori: Vec3(origin.0, origin.1, origin.2),
+                    dir: direction,
+                };
+                let color = r.ray_color(v.clone());
+                colorend = add(colorend, color);
+            }
+            let r: f64 = colorend.0 / (samples_per_pixel as f64) * 255.999;
+            let g: f64 = colorend.1 / (samples_per_pixel as f64) * 255.999;
+            let b: f64 = colorend.2 / (samples_per_pixel as f64) * 255.999;
             *pixel = image::Rgb([r as u8, g as u8, b as u8]);
         }
         progress.inc(1);
