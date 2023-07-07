@@ -25,6 +25,16 @@ struct Which {
     num: i32,
 }
 
+impl Ray {
+    fn at(&self, t: f64) -> Vec3 {
+        Vec3(
+            self.ori.0 + self.dir.0 * t,
+            self.ori.1 + self.dir.1 * t,
+            self.ori.2 + self.dir.2 * t,
+        )
+    }
+}
+
 fn dot(a: Vec3, b: Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
@@ -32,8 +42,23 @@ fn random_double(min: f64, max: f64) -> f64 {
     let mut rng = rand::thread_rng();
     min + (max - min) * rng.gen::<f64>()
 }
+fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = Vec3(
+            random_double(-1.0, 1.0),
+            random_double(-1.0, 1.0),
+            random_double(-1.0, 1.0),
+        );
+        if dot(p, p).sqrt() < 1.0 {
+            return p;
+        }
+    }
+}
 fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
+}
+fn reduce(a: Vec3, b: Vec3) -> Vec3 {
+    Vec3(a.0 - b.0, a.1 - b.1, a.2 - b.2)
 }
 
 fn hit_sphere(v: Vec<Ball>, r: Ray) -> Which {
@@ -62,52 +87,50 @@ fn hit_sphere(v: Vec<Ball>, r: Ray) -> Which {
     }
 }
 
-impl Ray {
-    fn at(&self, t: f64) -> Vec3 {
-        Vec3(
-            self.ori.0 + self.dir.0 * t,
-            self.ori.1 + self.dir.1 * t,
-            self.ori.2 + self.dir.2 * t,
-        )
+fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
+    if depth <= 0 {
+        return Vec3(0.0, 0.0, 0.0);
     }
-    fn ray_color(&self, v: Vec<Ball>) -> Vec3 {
-        let r = Ray {
-            ori: self.ori,
-            dir: self.dir,
+    let ans: Which = hit_sphere(v.clone(), r);
+    let t: f64 = ans.val;
+    let class: i32 = ans.num;
+    let ball: &Ball = &v[class as usize];
+    if t > 0.0 {
+        let p = r.at(t); //实际上是交点或者说终点的坐标,在00原点系下可以正确表示一些东西
+        let ray = reduce(p, ball.cent);
+        let length: f64 = dot(ray, ray).sqrt();
+        let n = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
+        let target = add(add(p, n), random_in_unit_sphere());
+        let nexray = Ray {
+            ori: p,
+            dir: reduce(target, p),
         };
-        let ans: Which = hit_sphere(v.clone(), r);
-        let t: f64 = ans.val;
-        let class: i32 = ans.num;
-        let ball: &Ball = &v[class as usize];
-        if t > 0.0 {
-            let mut ray = r.at(t);
-            ray.0 -= ball.cent.0;
-            ray.1 -= ball.cent.1;
-            ray.2 -= ball.cent.2;
-            let length: f64 = dot(ray, ray).sqrt();
-            let n = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
-            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
-        }
-        let length: f64 =
-            (self.dir.0 * self.dir.0 + self.dir.1 * self.dir.1 + self.dir.2 * self.dir.2).sqrt();
-        let t: f64 = 0.5 * (self.dir.1 / length + 1.0);
-        Vec3(
-            (1.0 - t) * 1.0 + t * 0.5,
-            (1.0 - t) * 1.0 + t * 0.7,
-            (1.0 - t) * 1.0 + t * 1.0,
-        )
+        let nex: Vec3 = ray_color(nexray, v, depth - 1);
+        return Vec3(0.5 * nex.0, 0.5 * nex.1, 0.5 * nex.2);
+        //            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
     }
+    let length: f64 = dot(r.dir, r.dir).sqrt();
+    let t: f64 = 0.5 * (r.dir.1 / length + 1.0);
+    Vec3(
+        (1.0 - t) * 1.0 + t * 0.5,
+        (1.0 - t) * 1.0 + t * 0.7,
+        (1.0 - t) * 1.0 + t * 1.0,
+    )
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image6.jpg");
+    let path = std::path::Path::new("output/book1/image7.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
+    //    let aspect_ratio = 16.0 / 9.0;
+    //    let width = 400;
+    //    let height = (width as f64 / aspect_ratio) as u32;
     let width = 200;
     let height = 100;
     let quality = 100;
     let samples_per_pixel = 100;
+    let max_depth = 50;
     let mut img: RgbImage = ImageBuffer::new(width, height);
     let mut v: Vec<Ball> = Vec::new();
 
@@ -139,7 +162,7 @@ fn main() {
                     ori: Vec3(origin.0, origin.1, origin.2),
                     dir: direction,
                 };
-                let color = r.ray_color(v.clone());
+                let color = ray_color(r, v.clone(), max_depth);
                 colorend = add(colorend, color);
             }
             let r: f64 = colorend.0 / (samples_per_pixel as f64) * 255.999;
