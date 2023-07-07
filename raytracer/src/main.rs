@@ -126,8 +126,8 @@ fn main() {
     //    let aspect_ratio = 16.0 / 9.0;
     //    let width = 400;
     //    let height = (width as f64 / aspect_ratio) as u32;
-    let width = 200;
-    let height = 100;
+    let width = 400;
+    let height = 200;
     let quality = 100;
     let samples_per_pixel = 100;
     let max_depth = 50;
@@ -165,9 +165,9 @@ fn main() {
                 let color = ray_color(r, v.clone(), max_depth);
                 colorend = add(colorend, color);
             }
-            let r: f64 = colorend.0 / (samples_per_pixel as f64) * 255.999;
-            let g: f64 = colorend.1 / (samples_per_pixel as f64) * 255.999;
-            let b: f64 = colorend.2 / (samples_per_pixel as f64) * 255.999;
+            let r: f64 = (colorend.0 / (samples_per_pixel as f64)).sqrt() * 255.999;
+            let g: f64 = (colorend.1 / (samples_per_pixel as f64)).sqrt() * 255.999;
+            let b: f64 = (colorend.2 / (samples_per_pixel as f64)).sqrt() * 255.999;
             *pixel = image::Rgb([r as u8, g as u8, b as u8]);
         }
         progress.inc(1);
