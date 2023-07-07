@@ -56,10 +56,18 @@ fn random_in_unit_sphere() -> Vec3 {
         }
     }
 }
-fn random_unit_vector() -> Vec3 {
+/*fn random_unit_vector() -> Vec3 {
     let p = random_in_unit_sphere();
     let length = dot(p, p).sqrt();
     Vec3(p.0 / length, p.1 / length, p.2 / length)
+}*/
+fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    let in_init_sphere = random_in_unit_sphere();
+    if dot(in_init_sphere, normal) > 0.0 {
+        in_init_sphere
+    } else {
+        Vec3(-in_init_sphere.0, -in_init_sphere.1, -in_init_sphere.2)
+    }
 }
 fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
@@ -107,7 +115,7 @@ fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
         let ray = reduce(p, ball.cent);
         let length: f64 = dot(ray, ray).sqrt();
         let n = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
-        let target = add(add(p, n), random_unit_vector());
+        let target = add(p, random_in_hemisphere(n));
         let nexray = Ray {
             ori: p,
             dir: reduce(target, p),
@@ -126,7 +134,7 @@ fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image9.jpg");
+    let path = std::path::Path::new("output/book1/image10.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
