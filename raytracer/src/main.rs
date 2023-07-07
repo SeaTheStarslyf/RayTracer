@@ -4,6 +4,8 @@ use indicatif::ProgressBar;
 use rand::Rng;
 use std::{fs::File, process::exit};
 
+//const PI: f64 = 3.1415926535897932385;
+
 #[derive(Copy, Clone)]
 struct Vec3(f64, f64, f64);
 
@@ -54,6 +56,11 @@ fn random_in_unit_sphere() -> Vec3 {
         }
     }
 }
+fn random_unit_vector() -> Vec3 {
+    let p = random_in_unit_sphere();
+    let length = dot(p, p).sqrt();
+    Vec3(p.0 / length, p.1 / length, p.2 / length)
+}
 fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
 }
@@ -74,7 +81,7 @@ fn hit_sphere(v: Vec<Ball>, r: Ray) -> Which {
         let discriminant: f64 = b * b - 4.0 * a * c;
         if discriminant >= 0.0 {
             let t: f64 = (-b - discriminant.sqrt()) / (2.0 * a); //注意取近时容易出错
-            if t < ans && t > 0.0 {
+            if t < ans && t > 0.001 {
                 ans = t;
                 n = js;
             }
@@ -100,7 +107,7 @@ fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
         let ray = reduce(p, ball.cent);
         let length: f64 = dot(ray, ray).sqrt();
         let n = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
-        let target = add(add(p, n), random_in_unit_sphere());
+        let target = add(add(p, n), random_unit_vector());
         let nexray = Ray {
             ori: p,
             dir: reduce(target, p),
@@ -119,7 +126,7 @@ fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image8.jpg");
+    let path = std::path::Path::new("output/book1/image9.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
