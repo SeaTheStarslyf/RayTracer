@@ -1,87 +1,23 @@
+mod material;
+mod ray;
+mod tool;
+mod vec3;
+use crate::material::*;
+use crate::ray::*;
+use crate::tool::*;
+use crate::vec3::*;
 use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
-use rand::Rng;
 use std::{fs::File, process::exit};
-
 //const PI: f64 = 3.1415926535897932385;
 
-#[derive(Copy, Clone)]
-struct Vec3(f64, f64, f64);
-
-#[derive(Copy, Clone)]
-struct Ray {
-    ori: Vec3,
-    dir: Vec3,
-}
-
-#[derive(Copy, Clone)]
-struct Ball {
-    cent: Vec3,
-    radi: f64,
-}
-
-#[derive(Copy, Clone)]
-struct Which {
-    val: f64,
-    num: i32,
-}
-
-impl Ray {
-    fn at(&self, t: f64) -> Vec3 {
-        Vec3(
-            self.ori.0 + self.dir.0 * t,
-            self.ori.1 + self.dir.1 * t,
-            self.ori.2 + self.dir.2 * t,
-        )
-    }
-}
-
-fn dot(a: Vec3, b: Vec3) -> f64 {
-    a.0 * b.0 + a.1 * b.1 + a.2 * b.2
-}
-fn random_double(min: f64, max: f64) -> f64 {
-    let mut rng = rand::thread_rng();
-    min + (max - min) * rng.gen::<f64>()
-}
-fn random_in_unit_sphere() -> Vec3 {
-    loop {
-        let p = Vec3(
-            random_double(-1.0, 1.0),
-            random_double(-1.0, 1.0),
-            random_double(-1.0, 1.0),
-        );
-        if dot(p, p).sqrt() < 1.0 {
-            return p;
-        }
-    }
-}
-/*fn random_unit_vector() -> Vec3 {
-    let p = random_in_unit_sphere();
-    let length = dot(p, p).sqrt();
-    Vec3(p.0 / length, p.1 / length, p.2 / length)
-}*/
-fn random_in_hemisphere(normal: Vec3) -> Vec3 {
-    let in_init_sphere = random_in_unit_sphere();
-    if dot(in_init_sphere, normal) > 0.0 {
-        in_init_sphere
-    } else {
-        Vec3(-in_init_sphere.0, -in_init_sphere.1, -in_init_sphere.2)
-    }
-}
-fn add(a: Vec3, b: Vec3) -> Vec3 {
-    Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
-}
-fn reduce(a: Vec3, b: Vec3) -> Vec3 {
-    Vec3(a.0 - b.0, a.1 - b.1, a.2 - b.2)
-}
-
-fn hit_sphere(v: Vec<Ball>, r: Ray) -> Which {
+fn hit_sphere(v: &[Box<dyn Material>], r: Ray) -> Hitrecord {
     let mut ans: f64 = 0x10000000 as f64;
     let mut n: i32 = -1;
     for (js, i) in (0_i32..).zip(v.iter()) {
-        let center: Vec3 = i.cent;
-        let radius: f64 = i.radi;
+        let center: Vec3 = i.getcent();
+        let radius: f64 = i.getradi();
         let oc = Vec3(r.ori.0 - center.0, r.ori.1 - center.1, r.ori.2 - center.2);
         let a: f64 = dot(r.dir, r.dir);
         let b: f64 = 2.0 * dot(oc, r.dir);
@@ -92,36 +28,57 @@ fn hit_sphere(v: Vec<Ball>, r: Ray) -> Which {
             if t < ans && t > 0.001 {
                 ans = t;
                 n = js;
+                continue;
+            }
+            let t: f64 = (-b + discriminant.sqrt()) / (2.0 * a);
+            if t < ans && t > 0.001 {
+                ans = t;
+                n = js;
             }
         }
     }
     if n == -1 {
-        Which { val: -1.0, num: 0 }
+        Hitrecord {
+            p: Vec3(0.0, 0.0, 0.0),
+            normal: Vec3(0.0, 0.0, 0.0),
+            t: -1.0,
+            num: -1,
+        }
     } else {
-        Which { val: ans, num: n }
+        let point = r.at(ans);
+        let object = &v[n as usize];
+        let ray = reduce(point, object.getcent());
+        let length: f64 = dot(ray, ray).sqrt();
+        let nor = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
+        Hitrecord {
+            p: point,
+            normal: nor,
+            t: ans,
+            num: n,
+        } //p实际上是交点或者说终点的坐标,在00原点系下可以正确表示一些东西
     }
 }
 
-fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
+fn ray_color(r: Ray, v: &Vec<Box<dyn Material>>, depth: i32) -> Vec3 {
     if depth <= 0 {
         return Vec3(0.0, 0.0, 0.0);
     }
-    let ans: Which = hit_sphere(v.clone(), r);
-    let t: f64 = ans.val;
-    let class: i32 = ans.num;
-    let ball: &Ball = &v[class as usize];
-    if t > 0.0 {
-        let p = r.at(t); //实际上是交点或者说终点的坐标,在00原点系下可以正确表示一些东西
-        let ray = reduce(p, ball.cent);
-        let length: f64 = dot(ray, ray).sqrt();
-        let n = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
-        let target = add(p, random_in_hemisphere(n));
-        let nexray = Ray {
-            ori: p,
-            dir: reduce(target, p),
-        };
-        let nex: Vec3 = ray_color(nexray, v, depth - 1);
-        return Vec3(0.5 * nex.0, 0.5 * nex.1, 0.5 * nex.2);
+    let hit: Hitrecord = hit_sphere(v, r);
+    if hit.t > 0.0 {
+        let mut scattered = Ray {
+            ori: Vec3(0.0, 0.0, 0.0),
+            dir: Vec3(0.0, 0.0, 0.0),
+        }; //scatter就是nexray
+        let object = &v[hit.num as usize];
+        let mut attenuation = object.getalbebo();
+        if object.scatter(&r, &hit, &mut attenuation, &mut scattered) {
+            let nex = ray_color(scattered, v, depth - 1);
+            return Vec3(
+                attenuation.0 * nex.0,
+                attenuation.1 * nex.1,
+                attenuation.2 * nex.2,
+            );
+        }
         //            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
     }
     let length: f64 = dot(r.dir, r.dir).sqrt();
@@ -134,7 +91,7 @@ fn ray_color(r: Ray, v: Vec<Ball>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image10.jpg");
+    let path = std::path::Path::new("output/book1/image11.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -147,7 +104,7 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 50;
     let mut img: RgbImage = ImageBuffer::new(width, height);
-    let mut v: Vec<Ball> = Vec::new();
+    let mut v: Vec<Box<dyn Material>> = Vec::new();
 
     let progress = if option_env!("CI").unwrap_or_default() == "true" {
         ProgressBar::hidden()
@@ -156,14 +113,30 @@ fn main() {
     };
 
     let origin = Vec3(0.0, 0.0, 0.0);
-    let mut b = Ball {
+    let b = LambertianBall {
         cent: Vec3(0.0, 0.0, -1.0),
         radi: 0.5,
+        albebo: Vec3(0.7, 0.3, 0.3),
     };
-    v.push(b);
-    b.cent = Vec3(0.0, -100.5, -1.0);
-    b.radi = 100.0;
-    v.push(b);
+    v.push(Box::new(b));
+    let b = LambertianBall {
+        cent: Vec3(0.0, -100.5, -1.0),
+        radi: 100.0,
+        albebo: Vec3(0.8, 0.8, 0.0),
+    };
+    v.push(Box::new(b));
+    let b = MetalBall {
+        cent: Vec3(1.0, 0.0, -1.0),
+        radi: 0.5,
+        albebo: Vec3(0.8, 0.6, 0.2),
+    };
+    v.push(Box::new(b));
+    let b = MetalBall {
+        cent: Vec3(-1.0, 0.0, -1.0),
+        radi: 0.5,
+        albebo: Vec3(0.8, 0.8, 0.8),
+    };
+    v.push(Box::new(b));
 
     for j in (0..height).rev() {
         for i in 0..width {
@@ -177,7 +150,7 @@ fn main() {
                     ori: Vec3(origin.0, origin.1, origin.2),
                     dir: direction,
                 };
-                let color = ray_color(r, v.clone(), max_depth);
+                let color = ray_color(r, &v, max_depth);
                 colorend = add(colorend, color);
             }
             let r: f64 = (colorend.0 / (samples_per_pixel as f64)).sqrt() * 255.999;
