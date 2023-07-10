@@ -79,6 +79,7 @@ fn ray_color(r: Ray, v: &Vec<Box<dyn Material>>, depth: i32) -> Vec3 {
                 attenuation.2 * nex.2,
             );
         }
+        return Vec3(0.0, 0.0, 0.0);
         //            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
     }
     let length: f64 = dot(r.dir, r.dir).sqrt();
@@ -91,7 +92,7 @@ fn ray_color(r: Ray, v: &Vec<Box<dyn Material>>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image11.jpg");
+    let path = std::path::Path::new("output/book1/image12.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -129,12 +130,14 @@ fn main() {
         cent: Vec3(1.0, 0.0, -1.0),
         radi: 0.5,
         albebo: Vec3(0.8, 0.6, 0.2),
+        fuzz: 1.0,
     };
     v.push(Box::new(b));
     let b = MetalBall {
         cent: Vec3(-1.0, 0.0, -1.0),
         radi: 0.5,
         albebo: Vec3(0.8, 0.8, 0.8),
+        fuzz: 0.3,
     };
     v.push(Box::new(b));
 

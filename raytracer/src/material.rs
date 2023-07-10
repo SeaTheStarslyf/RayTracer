@@ -56,6 +56,7 @@ pub struct MetalBall {
     pub cent: Vec3,
     pub radi: f64,
     pub albebo: Vec3,
+    pub fuzz: f64,
     //    pub name: Name,
 }
 
@@ -74,9 +75,17 @@ impl Material for MetalBall {
             r_in.dir.2 / length,
         );
         let reflected: Vec3 = reflect(unit, rec.normal);
+        let random = random_in_unit_sphere();
         let ray = Ray {
             ori: rec.p,
-            dir: reflected,
+            dir: add(
+                reflected,
+                Vec3(
+                    self.fuzz * random.0,
+                    self.fuzz * random.1,
+                    self.fuzz * random.2,
+                ),
+            ),
         };
         *scattered = ray;
         *attenuation = self.albebo;
