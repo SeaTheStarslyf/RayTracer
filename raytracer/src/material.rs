@@ -108,12 +108,21 @@ impl Material for Dielectric {
             r_in.dir.1 / length,
             r_in.dir.2 / length,
         );
+        let cos_theta = fmin(dot(multi(unit_direction, -1.0), rec.normal), 1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+        if etai_over_etat * sin_theta > 1.0 {
+            let reflected = reflect(unit_direction, rec.normal);
+            *scattered = Ray {
+                ori: rec.p,
+                dir: reflected,
+            };
+            return true;
+        }
         let refracted = refract(unit_direction, rec.normal, etai_over_etat);
-        let ray = Ray {
+        *scattered = Ray {
             ori: rec.p,
             dir: refracted,
         };
-        *scattered = ray;
         true
     }
     fn getalbebo(&self) -> Vec3 {

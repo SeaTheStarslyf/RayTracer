@@ -62,3 +62,10 @@ pub fn reduce(a: Vec3, b: Vec3) -> Vec3 {
 pub fn multi(a: Vec3, b: f64) -> Vec3 {
     Vec3(a.0 * b, a.1 * b, a.2 * b)
 }
+pub fn fmin(a: f64, b: f64) -> f64 {
+    if a <= b {
+        a
+    } else {
+        b
+    }
+}

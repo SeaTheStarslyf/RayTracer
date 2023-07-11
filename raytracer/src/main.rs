@@ -84,7 +84,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image13.jpg");
+    let path = std::path::Path::new("output/book1/image15.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -106,7 +106,9 @@ fn main() {
     };
 
     let origin = Vec3(0.0, 0.0, 0.0);
-    let a = Dielectric { ref_idx: 1.5 };
+    let a = Lambertian {
+        albebo: Vec3(0.1, 0.2, 0.5),
+    };
     let b = Sphere {
         cent: Vec3(0.0, 0.0, -1.0),
         radi: 0.5,
@@ -122,7 +124,7 @@ fn main() {
     v.push((Box::new(a), Box::new(b)));
     let a = Metal {
         albebo: Vec3(0.8, 0.6, 0.2),
-        fuzz: 1.0,
+        fuzz: 0.0,
     };
     let b = Sphere {
         cent: Vec3(1.0, 0.0, -1.0),
