@@ -1,5 +1,6 @@
 use crate::vec3::*;
 use rand::Rng;
+use std::f64::consts::PI;
 
 /*pub enum Name {
     Nlambertian,
@@ -57,6 +58,9 @@ pub fn schlick(cosine: f64, ref_idx: f64) -> f64 {
     let mut r0: f64 = (1.0 - ref_idx) / (1.0 + ref_idx);
     r0 = r0 * r0;
     r0 + (1.0 - r0) * ((1.0 - cosine).powf(5.0))
+}
+pub fn degrees_to_radians(degrees: f64) -> f64 {
+    degrees * PI / 180.0
 }
 pub fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)

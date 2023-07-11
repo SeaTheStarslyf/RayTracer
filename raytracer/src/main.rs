@@ -1,8 +1,10 @@
+mod camera;
 mod material;
 mod ray;
 mod shape;
 mod tool;
 mod vec3;
+use crate::camera::*;
 use crate::material::*;
 use crate::ray::*;
 use crate::shape::*;
@@ -11,8 +13,9 @@ use crate::vec3::*;
 use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
+use std::f64::consts::PI;
 use std::{fs::File, process::exit};
-//const PI: f64 = 3.1415926535897932385;
+
 type Object = (Box<dyn Material>, Box<dyn Shape>);
 
 fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
@@ -65,15 +68,15 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image16.jpg");
+    let path = std::path::Path::new("output/book1/image17.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
-    //    let aspect_ratio = 16.0 / 9.0;
-    //    let width = 400;
-    //    let height = (width as f64 / aspect_ratio) as u32;
+    let aspect_ratio = 16.0 / 9.0;
     let width = 400;
-    let height = 200;
+    let height = (width as f64 / aspect_ratio) as u32;
+    //    let width = 400;
+    //    let height = 200;
     let quality = 100;
     let samples_per_pixel = 100;
     let max_depth = 50;
@@ -86,45 +89,35 @@ fn main() {
         ProgressBar::new((height * width) as u64)
     };
 
-    let origin = Vec3(0.0, 0.0, 0.0);
+    //Add Object
+    let r = (PI / 4.0).cos();
     let a = Lambertian {
-        albebo: Vec3(0.1, 0.2, 0.5),
+        albebo: Vec3(0.0, 0.0, 1.0),
     };
     let b = Sphere {
-        cent: Vec3(0.0, 0.0, -1.0),
-        radi: 0.5,
+        cent: Vec3(-r, 0.0, -1.0),
+        radi: r,
     };
     v.push((Box::new(a), Box::new(b)));
     let a = Lambertian {
-        albebo: Vec3(0.8, 0.8, 0.0),
+        albebo: Vec3(1.0, 0.0, 0.0),
     };
     let b = Sphere {
-        cent: Vec3(0.0, -100.5, -1.0),
-        radi: 100.0,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Metal {
-        albebo: Vec3(0.8, 0.6, 0.2),
-        fuzz: 0.0,
-    };
-    let b = Sphere {
-        cent: Vec3(1.0, 0.0, -1.0),
-        radi: 0.5,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Dielectric { ref_idx: 1.5 };
-    let b = Sphere {
-        cent: Vec3(-1.0, 0.0, -1.0),
-        radi: 0.5,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Dielectric { ref_idx: 1.5 };
-    let b = Sphere {
-        cent: Vec3(-1.0, 0.0, -1.0),
-        radi: -0.45,
+        cent: Vec3(r, 0.0, -1.0),
+        radi: r,
     };
     v.push((Box::new(a), Box::new(b)));
 
+    // Camera
+    let mut cam = Camera {
+        origin: Vec3(0.0, 0.0, 0.0),
+        lower_left_corner: Vec3(0.0, 0.0, 0.0),
+        horizontal: Vec3(0.0, 0.0, 0.0),
+        vertical: Vec3(0.0, 0.0, 0.0),
+    };
+    cam.build(90.0, aspect_ratio);
+
+    //Render
     for j in (0..height).rev() {
         for i in 0..width {
             let pixel = img.get_pixel_mut(i, height - 1 - j);
@@ -132,11 +125,7 @@ fn main() {
             for _s in 0..samples_per_pixel {
                 let u: f64 = (i as f64 + random_double(0.0, 1.0)) / (width as f64);
                 let w: f64 = (j as f64 + random_double(0.0, 1.0)) / (height as f64);
-                let direction = Vec3(-2.0 + u * 4.0, -1.0 + w * 2.0, -1.0);
-                let r = Ray {
-                    ori: Vec3(origin.0, origin.1, origin.2),
-                    dir: direction,
-                };
+                let r = cam.get_ray(u, w);
                 let color = ray_color(r, &v, max_depth);
                 colorend = add(colorend, color);
             }
