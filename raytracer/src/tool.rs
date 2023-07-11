@@ -53,6 +53,11 @@ pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
     let r_out_perp = multi(n, -(1.0 - dot(r_out_parallel, r_out_parallel)).sqrt());
     add(r_out_parallel, r_out_perp)
 }
+pub fn schlick(cosine: f64, ref_idx: f64) -> f64 {
+    let mut r0: f64 = (1.0 - ref_idx) / (1.0 + ref_idx);
+    r0 = r0 * r0;
+    r0 + (1.0 - r0) * ((1.0 - cosine).powf(5.0))
+}
 pub fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
 }
@@ -61,6 +66,9 @@ pub fn reduce(a: Vec3, b: Vec3) -> Vec3 {
 }
 pub fn multi(a: Vec3, b: f64) -> Vec3 {
     Vec3(a.0 * b, a.1 * b, a.2 * b)
+}
+pub fn divis(a: Vec3, b: f64) -> Vec3 {
+    Vec3(a.0 / b, a.1 / b, a.2 / b)
 }
 pub fn fmin(a: f64, b: f64) -> f64 {
     if a <= b {

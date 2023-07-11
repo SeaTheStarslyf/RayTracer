@@ -118,6 +118,15 @@ impl Material for Dielectric {
             };
             return true;
         }
+        let reflect_prob = schlick(cos_theta, etai_over_etat);
+        if random_double(0.0, 1.0) < reflect_prob {
+            let reflected = reflect(unit_direction, rec.normal);
+            *scattered = Ray {
+                ori: rec.p,
+                dir: reflected,
+            };
+            return true;
+        }
         let refracted = refract(unit_direction, rec.normal, etai_over_etat);
         *scattered = Ray {
             ori: rec.p,

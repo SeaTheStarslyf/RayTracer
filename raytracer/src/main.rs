@@ -17,38 +17,19 @@ type Object = (Box<dyn Material>, Box<dyn Shape>);
 
 fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
     let mut ans: f64 = 0x10000000 as f64;
-    let mut n: i32 = -1;
+    let mut hitrecord = Hitrecord {
+        p: Vec3(0.0, 0.0, 0.0),
+        normal: Vec3(0.0, 0.0, 0.0),
+        t: -1.0,
+        front_face: false,
+        num: -1,
+    };
     for (js, i) in (0_i32..).zip(v.iter()) {
-        let t1 = i.1.gethit(r);
-        if t1 > 0.001 && t1 < ans {
-            ans = t1;
-            n = js;
+        if i.1.gethit(r, &mut hitrecord, ans, js) {
+            ans = hitrecord.t;
         }
     }
-    if n == -1 {
-        Hitrecord {
-            p: Vec3(0.0, 0.0, 0.0),
-            normal: Vec3(0.0, 0.0, 0.0),
-            t: -1.0,
-            num: -1,
-            front_face: false,
-        }
-    } else {
-        let point = r.at(ans);
-        let object = &v[n as usize];
-        let ray = reduce(point, object.1.getcent());
-        let length: f64 = dot(ray, ray).sqrt();
-        let nor = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
-        let mut hitrecord = Hitrecord {
-            p: point,
-            normal: nor,
-            t: ans,
-            num: n,
-            front_face: false,
-        }; //p实际上是交点或者说终点的坐标,在00原点系下可以正确表示一些东西
-        hitrecord.set_face_normal(r, nor);
-        hitrecord
-    }
+    hitrecord
 }
 
 fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
@@ -84,7 +65,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image15.jpg");
+    let path = std::path::Path::new("output/book1/image16.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -135,6 +116,12 @@ fn main() {
     let b = Sphere {
         cent: Vec3(-1.0, 0.0, -1.0),
         radi: 0.5,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(-1.0, 0.0, -1.0),
+        radi: -0.45,
     };
     v.push((Box::new(a), Box::new(b)));
 
