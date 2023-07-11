@@ -1,9 +1,11 @@
 mod material;
 mod ray;
+mod shape;
 mod tool;
 mod vec3;
 use crate::material::*;
 use crate::ray::*;
+use crate::shape::*;
 use crate::tool::*;
 use crate::vec3::*;
 use console::style;
@@ -11,30 +13,16 @@ use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 use std::{fs::File, process::exit};
 //const PI: f64 = 3.1415926535897932385;
+type Object = (Box<dyn Material>, Box<dyn Shape>);
 
-fn hit_sphere(v: &[Box<dyn Material>], r: Ray) -> Hitrecord {
+fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
     let mut ans: f64 = 0x10000000 as f64;
     let mut n: i32 = -1;
     for (js, i) in (0_i32..).zip(v.iter()) {
-        let center: Vec3 = i.getcent();
-        let radius: f64 = i.getradi();
-        let oc = Vec3(r.ori.0 - center.0, r.ori.1 - center.1, r.ori.2 - center.2);
-        let a: f64 = dot(r.dir, r.dir);
-        let b: f64 = 2.0 * dot(oc, r.dir);
-        let c: f64 = dot(oc, oc) - radius * radius;
-        let discriminant: f64 = b * b - 4.0 * a * c;
-        if discriminant >= 0.0 {
-            let t: f64 = (-b - discriminant.sqrt()) / (2.0 * a); //注意取近时容易出错
-            if t < ans && t > 0.001 {
-                ans = t;
-                n = js;
-                continue;
-            }
-            let t: f64 = (-b + discriminant.sqrt()) / (2.0 * a);
-            if t < ans && t > 0.001 {
-                ans = t;
-                n = js;
-            }
+        let t1 = i.1.gethit(r);
+        if t1 > 0.001 && t1 < ans {
+            ans = t1;
+            n = js;
         }
     }
     if n == -1 {
@@ -43,35 +31,39 @@ fn hit_sphere(v: &[Box<dyn Material>], r: Ray) -> Hitrecord {
             normal: Vec3(0.0, 0.0, 0.0),
             t: -1.0,
             num: -1,
+            front_face: false,
         }
     } else {
         let point = r.at(ans);
         let object = &v[n as usize];
-        let ray = reduce(point, object.getcent());
+        let ray = reduce(point, object.1.getcent());
         let length: f64 = dot(ray, ray).sqrt();
         let nor = Vec3(ray.0 / length, ray.1 / length, ray.2 / length);
-        Hitrecord {
+        let mut hitrecord = Hitrecord {
             p: point,
             normal: nor,
             t: ans,
             num: n,
-        } //p实际上是交点或者说终点的坐标,在00原点系下可以正确表示一些东西
+            front_face: false,
+        }; //p实际上是交点或者说终点的坐标,在00原点系下可以正确表示一些东西
+        hitrecord.set_face_normal(r, nor);
+        hitrecord
     }
 }
 
-fn ray_color(r: Ray, v: &Vec<Box<dyn Material>>, depth: i32) -> Vec3 {
+fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
     if depth <= 0 {
         return Vec3(0.0, 0.0, 0.0);
     }
-    let hit: Hitrecord = hit_sphere(v, r);
+    let hit: Hitrecord = hit_shape(v, r);
     if hit.t > 0.0 {
         let mut scattered = Ray {
             ori: Vec3(0.0, 0.0, 0.0),
             dir: Vec3(0.0, 0.0, 0.0),
         }; //scatter就是nexray
         let object = &v[hit.num as usize];
-        let mut attenuation = object.getalbebo();
-        if object.scatter(&r, &hit, &mut attenuation, &mut scattered) {
+        let mut attenuation = object.0.getalbebo();
+        if object.0.scatter(&r, &hit, &mut attenuation, &mut scattered) {
             let nex = ray_color(scattered, v, depth - 1);
             return Vec3(
                 attenuation.0 * nex.0,
@@ -92,7 +84,7 @@ fn ray_color(r: Ray, v: &Vec<Box<dyn Material>>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image12.jpg");
+    let path = std::path::Path::new("output/book1/image13.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -105,7 +97,7 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 50;
     let mut img: RgbImage = ImageBuffer::new(width, height);
-    let mut v: Vec<Box<dyn Material>> = Vec::new();
+    let mut v: Vec<(Box<dyn Material>, Box<dyn Shape>)> = Vec::new();
 
     let progress = if option_env!("CI").unwrap_or_default() == "true" {
         ProgressBar::hidden()
@@ -114,32 +106,35 @@ fn main() {
     };
 
     let origin = Vec3(0.0, 0.0, 0.0);
-    let b = LambertianBall {
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
         cent: Vec3(0.0, 0.0, -1.0),
         radi: 0.5,
-        albebo: Vec3(0.7, 0.3, 0.3),
     };
-    v.push(Box::new(b));
-    let b = LambertianBall {
-        cent: Vec3(0.0, -100.5, -1.0),
-        radi: 100.0,
+    v.push((Box::new(a), Box::new(b)));
+    let a = Lambertian {
         albebo: Vec3(0.8, 0.8, 0.0),
     };
-    v.push(Box::new(b));
-    let b = MetalBall {
-        cent: Vec3(1.0, 0.0, -1.0),
-        radi: 0.5,
+    let b = Sphere {
+        cent: Vec3(0.0, -100.5, -1.0),
+        radi: 100.0,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Metal {
         albebo: Vec3(0.8, 0.6, 0.2),
         fuzz: 1.0,
     };
-    v.push(Box::new(b));
-    let b = MetalBall {
+    let b = Sphere {
+        cent: Vec3(1.0, 0.0, -1.0),
+        radi: 0.5,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
         cent: Vec3(-1.0, 0.0, -1.0),
         radi: 0.5,
-        albebo: Vec3(0.8, 0.8, 0.8),
-        fuzz: 0.3,
     };
-    v.push(Box::new(b));
+    v.push((Box::new(a), Box::new(b)));
 
     for j in (0..height).rev() {
         for i in 0..width {

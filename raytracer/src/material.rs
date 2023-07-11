@@ -10,19 +10,15 @@ pub trait Material {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool;
-    fn getcent(&self) -> Vec3;
-    fn getradi(&self) -> f64;
     fn getalbebo(&self) -> Vec3;
 }
 
-pub struct LambertianBall {
-    pub cent: Vec3,
-    pub radi: f64,
+pub struct Lambertian {
     pub albebo: Vec3,
     //    pub name: Name,
 }
 
-impl Material for LambertianBall {
+impl Material for Lambertian {
     fn scatter(
         &self,
         r_in: &Ray,
@@ -41,26 +37,18 @@ impl Material for LambertianBall {
         *attenuation = self.albebo;
         true
     }
-    fn getcent(&self) -> Vec3 {
-        self.cent
-    }
-    fn getradi(&self) -> f64 {
-        self.radi
-    }
     fn getalbebo(&self) -> Vec3 {
         self.albebo
     }
 }
 
-pub struct MetalBall {
-    pub cent: Vec3,
-    pub radi: f64,
+pub struct Metal {
     pub albebo: Vec3,
     pub fuzz: f64,
     //    pub name: Name,
 }
 
-impl Material for MetalBall {
+impl Material for Metal {
     fn scatter(
         &self,
         r_in: &Ray,
@@ -91,13 +79,44 @@ impl Material for MetalBall {
         *attenuation = self.albebo;
         dot(scattered.dir, rec.normal) > 0.0
     }
-    fn getcent(&self) -> Vec3 {
-        self.cent
-    }
-    fn getradi(&self) -> f64 {
-        self.radi
-    }
     fn getalbebo(&self) -> Vec3 {
         self.albebo
+    }
+}
+
+pub struct Dielectric {
+    pub ref_idx: f64,
+}
+
+impl Material for Dielectric {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &Hitrecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        *attenuation = Vec3(1.0, 1.0, 1.0);
+        let etai_over_etat: f64 = if rec.front_face {
+            1.0 / self.ref_idx
+        } else {
+            self.ref_idx
+        };
+        let length: f64 = dot(r_in.dir, r_in.dir).sqrt();
+        let unit_direction = Vec3(
+            r_in.dir.0 / length,
+            r_in.dir.1 / length,
+            r_in.dir.2 / length,
+        );
+        let refracted = refract(unit_direction, rec.normal, etai_over_etat);
+        let ray = Ray {
+            ori: rec.p,
+            dir: refracted,
+        };
+        *scattered = ray;
+        true
+    }
+    fn getalbebo(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
     }
 }

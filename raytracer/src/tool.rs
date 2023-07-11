@@ -46,9 +46,19 @@ pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
         v.2 - 2.0 * length * n.2,
     )
 }
+pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+    let uv_rfl = Vec3(-uv.0, -uv.1, -uv.2);
+    let cos_theta: f64 = dot(uv_rfl, n);
+    let r_out_parallel = multi(add(uv, multi(n, cos_theta)), etai_over_etat);
+    let r_out_perp = multi(n, -(1.0 - dot(r_out_parallel, r_out_parallel)).sqrt());
+    add(r_out_parallel, r_out_perp)
+}
 pub fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
 }
 pub fn reduce(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 - b.0, a.1 - b.1, a.2 - b.2)
+}
+pub fn multi(a: Vec3, b: f64) -> Vec3 {
+    Vec3(a.0 * b, a.1 * b, a.2 * b)
 }
