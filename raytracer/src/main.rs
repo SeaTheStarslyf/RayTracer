@@ -68,7 +68,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image18.jpg");
+    let path = std::path::Path::new("output/book1/image19.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -139,7 +139,7 @@ fn main() {
         Vec3(-2.0, 2.0, 1.0),
         Vec3(0.0, 0.0, -1.0),
         Vec3(0.0, 1.0, 0.0),
-        90.0,
+        20.0,
         aspect_ratio,
     );
 
