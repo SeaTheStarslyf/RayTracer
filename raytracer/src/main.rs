@@ -68,7 +68,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image19.jpg");
+    let path = std::path::Path::new("output/book1/image20.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -134,14 +134,23 @@ fn main() {
         lower_left_corner: Vec3(0.0, 0.0, 0.0),
         horizontal: Vec3(0.0, 0.0, 0.0),
         vertical: Vec3(0.0, 0.0, 0.0),
+        u: Vec3(0.0, 0.0, 0.0),
+        v: Vec3(0.0, 0.0, 0.0),
+        w: Vec3(0.0, 0.0, 0.0),
+        lens_radius: 0.0,
     };
-    cam.build(
-        Vec3(-2.0, 2.0, 1.0),
-        Vec3(0.0, 0.0, -1.0),
-        Vec3(0.0, 1.0, 0.0),
-        20.0,
-        aspect_ratio,
-    );
+    let lookfrom1 = Vec3(3.0, 3.0, 2.0);
+    let lookat1 = Vec3(0.0, 0.0, -1.0);
+    let para = Camerapara {
+        lookfrom: lookfrom1,
+        lookat: lookat1,
+        vup: Vec3(0.0, 1.0, 0.0),
+        vfov: 20.0,
+        aspect: aspect_ratio,
+        aperture: 2.0,
+        focus_dist: dot(reduce(lookfrom1, lookat1), reduce(lookfrom1, lookat1)).sqrt(),
+    };
+    cam.build(para);
 
     //Render
     for j in (0..height).rev() {

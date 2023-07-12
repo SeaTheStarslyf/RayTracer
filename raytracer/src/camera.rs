@@ -8,37 +8,60 @@ pub struct Camera {
     pub lower_left_corner: Vec3,
     pub horizontal: Vec3,
     pub vertical: Vec3,
+    pub u: Vec3,
+    pub v: Vec3,
+    pub w: Vec3,
+    pub lens_radius: f64,
+}
+
+#[derive(Copy, Clone)]
+pub struct Camerapara {
+    pub lookfrom: Vec3,
+    pub lookat: Vec3,
+    pub vup: Vec3,
+    pub vfov: f64,
+    pub aspect: f64,
+    pub aperture: f64,
+    pub focus_dist: f64,
 }
 
 impl Camera {
-    pub fn build(&mut self, lookfrom: Vec3, lookat: Vec3, vup: Vec3, vfov: f64, aspect: f64) {
-        self.origin = lookfrom;
-        let theta = degrees_to_radians(vfov);
-        let half_height = (theta / 2.0).tan();
-        let half_width = aspect * half_height;
-        let w = unit_vector(reduce(lookfrom, lookat));
-        let u = unit_vector(cross(vup, w));
-        let v = cross(w, u);
+    pub fn build(&mut self, camera: Camerapara) {
+        self.origin = camera.lookfrom;
+        self.lens_radius = camera.aperture / 2.0;
 
+        let theta = degrees_to_radians(camera.vfov);
+        let half_height = (theta / 2.0).tan();
+        let half_width = camera.aspect * half_height;
+
+        self.w = unit_vector(reduce(camera.lookfrom, camera.lookat));
+        self.u = unit_vector(cross(camera.vup, self.w));
+        self.v = cross(self.w, self.u);
         self.lower_left_corner = reduce(
             reduce(
-                reduce(self.origin, multi(u, half_width)),
-                multi(v, half_height),
+                reduce(self.origin, multi(self.u, half_width * camera.focus_dist)),
+                multi(self.v, half_height * camera.focus_dist),
             ),
-            w,
+            multi(self.w, camera.focus_dist),
         );
-        self.horizontal = multi(u, 2.0 * half_width);
-        self.vertical = multi(v, 2.0 * half_height);
+        self.horizontal = multi(self.u, 2.0 * half_width * camera.focus_dist);
+        self.vertical = multi(self.v, 2.0 * half_height * camera.focus_dist);
     }
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+    pub fn get_ray(&self, s: f64, t: f64) -> Ray {
+        let rd = multi(random_in_unit_disk(), self.lens_radius);
+        let offset = add(multi(self.u, rd.0), multi(self.v, rd.1));
+
         Ray {
-            ori: self.origin,
+            ori: add(self.origin, offset),
             dir: reduce(
-                add(
-                    add(self.lower_left_corner, multi(self.horizontal, u)),
-                    multi(self.vertical, v),
+                reduce(
+                    add(
+                        add(self.lower_left_corner, multi(self.horizontal, s)),
+                        multi(self.vertical, t),
+                    ),
+                    self.origin,
                 ),
-                self.origin,
+                offset,
             ),
         }
     }

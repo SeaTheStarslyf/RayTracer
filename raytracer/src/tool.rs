@@ -50,6 +50,14 @@ pub fn random_unit_vector() -> Vec3 {
         Vec3(-in_init_sphere.0, -in_init_sphere.1, -in_init_sphere.2)
     }
 }*/
+pub fn random_in_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3(random_double(-1.0, 1.0), random_double(-1.0, 1.0), 0.0);
+        if dot(p, p) < 1.0 {
+            return p;
+        }
+    }
+}
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     let length: f64 = dot(v, n);
     Vec3(
