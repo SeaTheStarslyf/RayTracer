@@ -2,7 +2,7 @@ use crate::ray::*;
 use crate::tool::*;
 use crate::vec3::*;
 
-pub trait Material {
+pub trait Material: Sync + Send {
     fn scatter(
         &self,
         r_in: &Ray,

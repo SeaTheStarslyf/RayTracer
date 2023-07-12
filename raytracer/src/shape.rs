@@ -2,7 +2,7 @@ use crate::ray::*;
 use crate::tool::*;
 use crate::vec3::*;
 
-pub trait Shape {
+pub trait Shape: Sync + Send {
     fn getcent(&self) -> Vec3;
     fn getradi(&self) -> f64;
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_max: f64, js: i32) -> bool;

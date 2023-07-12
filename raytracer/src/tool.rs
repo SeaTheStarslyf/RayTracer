@@ -4,7 +4,8 @@ use crate::vec3::*;
 use rand::Rng;
 use std::f64::consts::PI;
 
-type Object = (Box<dyn Material>, Box<dyn Shape>);
+use std::sync::Arc;
+type Object = (Arc<dyn Material>, Arc<dyn Shape>);
 
 /*pub enum Name {
     Nlambertian,
@@ -123,7 +124,7 @@ pub fn random_scene(v: &mut Vec<Object>) {
         cent: Vec3(0.0, -1000.0, 0.0),
         radi: 1000.0,
     };
-    v.push((Box::new(a), Box::new(b)));
+    v.push((Arc::new(a), Arc::new(b)));
 
     for i in -11..11 {
         for j in -11..11 {
@@ -148,7 +149,7 @@ pub fn random_scene(v: &mut Vec<Object>) {
                         cent: center,
                         radi: 0.2,
                     };
-                    v.push((Box::new(a), Box::new(b)));
+                    v.push((Arc::new(a), Arc::new(b)));
                 } else if choose_mat < 0.95 {
                     let a = Metal {
                         albebo: random_vector(0.5, 1.0),
@@ -158,14 +159,14 @@ pub fn random_scene(v: &mut Vec<Object>) {
                         cent: center,
                         radi: 0.2,
                     };
-                    v.push((Box::new(a), Box::new(b)));
+                    v.push((Arc::new(a), Arc::new(b)));
                 } else {
                     let a = Dielectric { ref_idx: 1.5 };
                     let b = Sphere {
                         cent: center,
                         radi: 0.2,
                     };
-                    v.push((Box::new(a), Box::new(b)));
+                    v.push((Arc::new(a), Arc::new(b)));
                 }
             }
         }
@@ -176,7 +177,7 @@ pub fn random_scene(v: &mut Vec<Object>) {
         cent: Vec3(0.0, 1.0, 0.0),
         radi: 1.0,
     };
-    v.push((Box::new(a), Box::new(b)));
+    v.push((Arc::new(a), Arc::new(b)));
     let a = Lambertian {
         albebo: Vec3(0.4, 0.2, 0.1),
     };
@@ -184,7 +185,7 @@ pub fn random_scene(v: &mut Vec<Object>) {
         cent: Vec3(-4.0, 1.0, 0.0),
         radi: 1.0,
     };
-    v.push((Box::new(a), Box::new(b)));
+    v.push((Arc::new(a), Arc::new(b)));
     let a = Metal {
         albebo: Vec3(0.7, 0.6, 0.5),
         fuzz: 0.0,
@@ -193,5 +194,5 @@ pub fn random_scene(v: &mut Vec<Object>) {
         cent: Vec3(4.0, 1.0, 0.0),
         radi: 1.0,
     };
-    v.push((Box::new(a), Box::new(b)));
+    v.push((Arc::new(a), Arc::new(b)));
 }

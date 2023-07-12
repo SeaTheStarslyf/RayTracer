@@ -16,7 +16,10 @@ use indicatif::ProgressBar;
 //use std::f64::consts::PI;
 use std::{fs::File, process::exit};
 
-type Object = (Box<dyn Material>, Box<dyn Shape>);
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+type Object = (Arc<dyn Material>, Arc<dyn Shape>);
 
 fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
     let mut ans: f64 = 0x10000000 as f64;
@@ -80,8 +83,8 @@ fn main() {
     let quality = 100;
     let samples_per_pixel = 500;
     let max_depth = 50;
-    let mut img: RgbImage = ImageBuffer::new(width, height);
-    let mut v: Vec<(Box<dyn Material>, Box<dyn Shape>)> = Vec::new();
+    //    let img: RgbImage = ImageBuffer::new(width, height);
+    let mut v: Vec<(Arc<dyn Material>, Arc<dyn Shape>)> = Vec::new();
 
     let progress = if option_env!("CI").unwrap_or_default() == "true" {
         ProgressBar::hidden()
@@ -117,31 +120,57 @@ fn main() {
     cam.build(para);
 
     //Render
-    for j in (0..height).rev() {
-        for i in 0..width {
-            let pixel = img.get_pixel_mut(i, height - 1 - j);
-            let mut colorend = Vec3(0.0, 0.0, 0.0);
-            for _s in 0..samples_per_pixel {
-                let u: f64 = (i as f64 + random_double(0.0, 1.0)) / (width as f64);
-                let w: f64 = (j as f64 + random_double(0.0, 1.0)) / (height as f64);
-                let r = cam.get_ray(u, w);
-                let color = ray_color(r, &v, max_depth);
-                colorend = add(colorend, color);
-            }
-            let r: f64 = (colorend.0 / (samples_per_pixel as f64)).sqrt() * 255.999;
-            let g: f64 = (colorend.1 / (samples_per_pixel as f64)).sqrt() * 255.999;
-            let b: f64 = (colorend.2 / (samples_per_pixel as f64)).sqrt() * 255.999;
-            *pixel = image::Rgb([r as u8, g as u8, b as u8]);
-        }
-        progress.inc(1);
+    let shared_v: Arc<Mutex<Vec<Object>>> = Arc::new(Mutex::new(v));
+    let img: Arc<Mutex<RgbImage>> = Arc::new(Mutex::new(ImageBuffer::new(width, height)));
+    //    let threads = 6; // 获取可用CPU核心数
+    let threads = num_cpus::get();
+    let rows_per_thread = height as f64 / threads as f64;
+
+    let handles: Vec<_> = (0..threads)
+        .map(|tid| {
+            let img = Arc::clone(&img);
+            let shared_v = Arc::clone(&shared_v);
+            let cam = cam;
+            let progress = progress.clone();
+
+            thread::spawn(move || {
+                let start_row = (tid as f64 * rows_per_thread) as u32;
+                let end_row = ((tid + 1) as f64 * rows_per_thread) as u32;
+                let mut locked_img = img.lock().unwrap();
+                let v = shared_v.lock().unwrap();
+                for j in (start_row..end_row).rev() {
+                    for i in 0..width {
+                        let pixel = locked_img.get_pixel_mut(i, height - 1 - j);
+                        let mut colorend = Vec3(0.0, 0.0, 0.0);
+                        for _s in 0..samples_per_pixel {
+                            let u: f64 = (i as f64 + random_double(0.0, 1.0)) / (width as f64);
+                            let w: f64 = (j as f64 + random_double(0.0, 1.0)) / (height as f64);
+                            let r = cam.get_ray(u, w);
+                            let color = ray_color(r, &v, max_depth);
+                            colorend = add(colorend, color);
+                        }
+                        let r: f64 = (colorend.0 / (samples_per_pixel as f64)).sqrt() * 255.999;
+                        let g: f64 = (colorend.1 / (samples_per_pixel as f64)).sqrt() * 255.999;
+                        let b: f64 = (colorend.2 / (samples_per_pixel as f64)).sqrt() * 255.999;
+                        *pixel = image::Rgb([r as u8, g as u8, b as u8]);
+                    }
+                    progress.inc(threads as u64);
+                }
+            })
+        })
+        .collect();
+
+    for handle in handles {
+        handle.join().unwrap();
     }
+
     progress.finish();
 
     println!(
         "Ouput image as \"{}\"",
         style(path.to_str().unwrap()).yellow()
     );
-    let output_image = image::DynamicImage::ImageRgb8(img);
+    let output_image = image::DynamicImage::ImageRgb8(img.lock().unwrap().clone());
     let mut output_file = File::create(path).unwrap();
     match output_image.write_to(&mut output_file, image::ImageOutputFormat::Jpeg(quality)) {
         Ok(_) => {}
