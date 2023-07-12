@@ -68,17 +68,17 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image20.jpg");
+    let path = std::path::Path::new("output/book1/image21.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
-    let aspect_ratio = 16.0 / 9.0;
-    let width = 400;
+    let aspect_ratio = 3.0 / 2.0;
+    let width = 1200;
     let height = (width as f64 / aspect_ratio) as u32;
     //    let width = 400;
     //    let height = 200;
     let quality = 100;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 500;
     let max_depth = 50;
     let mut img: RgbImage = ImageBuffer::new(width, height);
     let mut v: Vec<(Box<dyn Material>, Box<dyn Shape>)> = Vec::new();
@@ -90,43 +90,7 @@ fn main() {
     };
 
     //Add Object
-    let a = Lambertian {
-        albebo: Vec3(0.1, 0.2, 0.5),
-    };
-    let b = Sphere {
-        cent: Vec3(0.0, 0.0, -1.0),
-        radi: 0.5,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Lambertian {
-        albebo: Vec3(0.8, 0.8, 0.0),
-    };
-    let b = Sphere {
-        cent: Vec3(0.0, -100.5, -1.0),
-        radi: 100.0,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Metal {
-        albebo: Vec3(0.8, 0.6, 0.2),
-        fuzz: 0.0,
-    };
-    let b = Sphere {
-        cent: Vec3(1.0, 0.0, -1.0),
-        radi: 0.5,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Dielectric { ref_idx: 1.5 };
-    let b = Sphere {
-        cent: Vec3(-1.0, 0.0, -1.0),
-        radi: 0.5,
-    };
-    v.push((Box::new(a), Box::new(b)));
-    let a = Dielectric { ref_idx: 1.5 };
-    let b = Sphere {
-        cent: Vec3(-1.0, 0.0, -1.0),
-        radi: -0.45,
-    };
-    v.push((Box::new(a), Box::new(b)));
+    random_scene(&mut v);
 
     // Camera
     let mut cam = Camera {
@@ -139,16 +103,16 @@ fn main() {
         w: Vec3(0.0, 0.0, 0.0),
         lens_radius: 0.0,
     };
-    let lookfrom1 = Vec3(3.0, 3.0, 2.0);
-    let lookat1 = Vec3(0.0, 0.0, -1.0);
+    let lookfrom1 = Vec3(13.0, 2.0, 3.0);
+    let lookat1 = Vec3(0.0, 0.0, 0.0);
     let para = Camerapara {
         lookfrom: lookfrom1,
         lookat: lookat1,
         vup: Vec3(0.0, 1.0, 0.0),
         vfov: 20.0,
         aspect: aspect_ratio,
-        aperture: 2.0,
-        focus_dist: dot(reduce(lookfrom1, lookat1), reduce(lookfrom1, lookat1)).sqrt(),
+        aperture: 0.1, //光圈直径
+        focus_dist: 10.0,
     };
     cam.build(para);
 

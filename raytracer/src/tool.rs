@@ -1,6 +1,10 @@
+use crate::material::*;
+use crate::shape::*;
 use crate::vec3::*;
 use rand::Rng;
 use std::f64::consts::PI;
+
+type Object = (Box<dyn Material>, Box<dyn Shape>);
 
 /*pub enum Name {
     Nlambertian,
@@ -24,6 +28,13 @@ pub fn unit_vector(a: Vec3) -> Vec3 {
 pub fn random_double(min: f64, max: f64) -> f64 {
     let mut rng = rand::thread_rng();
     min + (max - min) * rng.gen::<f64>()
+}
+pub fn random_vector(min: f64, max: f64) -> Vec3 {
+    Vec3(
+        random_double(min, max),
+        random_double(min, max),
+        random_double(min, max),
+    )
 }
 pub fn random_in_unit_sphere() -> Vec3 {
     loop {
@@ -90,6 +101,9 @@ pub fn reduce(a: Vec3, b: Vec3) -> Vec3 {
 pub fn multi(a: Vec3, b: f64) -> Vec3 {
     Vec3(a.0 * b, a.1 * b, a.2 * b)
 }
+pub fn multivec3(a: Vec3, b: Vec3) -> Vec3 {
+    Vec3(a.0 * b.0, a.1 * b.1, a.2 * b.2)
+}
 pub fn divis(a: Vec3, b: f64) -> Vec3 {
     Vec3(a.0 / b, a.1 / b, a.2 / b)
 }
@@ -99,4 +113,85 @@ pub fn fmin(a: f64, b: f64) -> f64 {
     } else {
         b
     }
+}
+
+pub fn random_scene(v: &mut Vec<Object>) {
+    let a = Lambertian {
+        albebo: Vec3(0.5, 0.5, 0.5),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, -1000.0, 0.0),
+        radi: 1000.0,
+    };
+    v.push((Box::new(a), Box::new(b)));
+
+    for i in -11..11 {
+        for j in -11..11 {
+            let choose_mat = random_double(0.0, 1.0);
+            let center = Vec3(
+                (i as f64) + 0.9 * random_double(0.0, 1.0),
+                0.2,
+                (j as f64) + 0.9 * random_double(0.0, 1.0),
+            );
+            if dot(
+                reduce(center, Vec3(4.0, 0.2, 0.0)),
+                reduce(center, Vec3(4.0, 0.2, 0.0)),
+            )
+            .sqrt()
+                > 0.9
+            {
+                if choose_mat < 0.8 {
+                    let a = Lambertian {
+                        albebo: multivec3(random_vector(0.0, 1.0), random_vector(0.0, 1.0)),
+                    };
+                    let b = Sphere {
+                        cent: center,
+                        radi: 0.2,
+                    };
+                    v.push((Box::new(a), Box::new(b)));
+                } else if choose_mat < 0.95 {
+                    let a = Metal {
+                        albebo: random_vector(0.5, 1.0),
+                        fuzz: random_double(0.0, 0.5),
+                    };
+                    let b = Sphere {
+                        cent: center,
+                        radi: 0.2,
+                    };
+                    v.push((Box::new(a), Box::new(b)));
+                } else {
+                    let a = Dielectric { ref_idx: 1.5 };
+                    let b = Sphere {
+                        cent: center,
+                        radi: 0.2,
+                    };
+                    v.push((Box::new(a), Box::new(b)));
+                }
+            }
+        }
+    }
+
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(0.0, 1.0, 0.0),
+        radi: 1.0,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Lambertian {
+        albebo: Vec3(0.4, 0.2, 0.1),
+    };
+    let b = Sphere {
+        cent: Vec3(-4.0, 1.0, 0.0),
+        radi: 1.0,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Metal {
+        albebo: Vec3(0.7, 0.6, 0.5),
+        fuzz: 0.0,
+    };
+    let b = Sphere {
+        cent: Vec3(4.0, 1.0, 0.0),
+        radi: 1.0,
+    };
+    v.push((Box::new(a), Box::new(b)));
 }
