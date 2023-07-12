@@ -13,7 +13,7 @@ use crate::vec3::*;
 use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
-use std::f64::consts::PI;
+//use std::f64::consts::PI;
 use std::{fs::File, process::exit};
 
 type Object = (Box<dyn Material>, Box<dyn Shape>);
@@ -68,7 +68,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image17.jpg");
+    let path = std::path::Path::new("output/book1/image18.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -90,21 +90,41 @@ fn main() {
     };
 
     //Add Object
-    let r = (PI / 4.0).cos();
     let a = Lambertian {
-        albebo: Vec3(0.0, 0.0, 1.0),
+        albebo: Vec3(0.1, 0.2, 0.5),
     };
     let b = Sphere {
-        cent: Vec3(-r, 0.0, -1.0),
-        radi: r,
+        cent: Vec3(0.0, 0.0, -1.0),
+        radi: 0.5,
     };
     v.push((Box::new(a), Box::new(b)));
     let a = Lambertian {
-        albebo: Vec3(1.0, 0.0, 0.0),
+        albebo: Vec3(0.8, 0.8, 0.0),
     };
     let b = Sphere {
-        cent: Vec3(r, 0.0, -1.0),
-        radi: r,
+        cent: Vec3(0.0, -100.5, -1.0),
+        radi: 100.0,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Metal {
+        albebo: Vec3(0.8, 0.6, 0.2),
+        fuzz: 0.0,
+    };
+    let b = Sphere {
+        cent: Vec3(1.0, 0.0, -1.0),
+        radi: 0.5,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(-1.0, 0.0, -1.0),
+        radi: 0.5,
+    };
+    v.push((Box::new(a), Box::new(b)));
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(-1.0, 0.0, -1.0),
+        radi: -0.45,
     };
     v.push((Box::new(a), Box::new(b)));
 
@@ -115,7 +135,13 @@ fn main() {
         horizontal: Vec3(0.0, 0.0, 0.0),
         vertical: Vec3(0.0, 0.0, 0.0),
     };
-    cam.build(90.0, aspect_ratio);
+    cam.build(
+        Vec3(-2.0, 2.0, 1.0),
+        Vec3(0.0, 0.0, -1.0),
+        Vec3(0.0, 1.0, 0.0),
+        90.0,
+        aspect_ratio,
+    );
 
     //Render
     for j in (0..height).rev() {

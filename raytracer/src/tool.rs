@@ -10,6 +10,17 @@ use std::f64::consts::PI;
 pub fn dot(a: Vec3, b: Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
+pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
+    Vec3(
+        a.1 * b.2 - a.2 * b.1,
+        a.2 * b.0 - a.0 * b.2,
+        a.0 * b.1 - a.1 * b.0,
+    )
+}
+pub fn unit_vector(a: Vec3) -> Vec3 {
+    let length: f64 = dot(a, a).sqrt();
+    Vec3(a.0 / length, a.1 / length, a.2 / length)
+}
 pub fn random_double(min: f64, max: f64) -> f64 {
     let mut rng = rand::thread_rng();
     min + (max - min) * rng.gen::<f64>()
