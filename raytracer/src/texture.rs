@@ -7,10 +7,12 @@ pub trait Texture: Sync + Send {
     fn value(&self, u: f64, v: f64, p: Vec3) -> Vec3;
 }
 
+#[derive(Clone)]
 pub struct Solidcolor {
     pub color: Vec3,
 }
 
+#[derive(Clone)]
 pub struct Checkertexture {
     pub odd: Arc<dyn Texture>,
     pub even: Arc<dyn Texture>,
