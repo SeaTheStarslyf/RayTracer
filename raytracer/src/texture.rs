@@ -47,8 +47,8 @@ impl Texture for Noisetexture {
     fn value(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
         let _hahaha = u + v;
         multi(
-            multi(Vec3(1.0, 1.0, 1.0), 0.5),
-            1.0 + self.noise.noise(multi(p, self.scale)),
+            Vec3(1.0, 1.0, 1.0),
+            self.noise.turb(multi(p, self.scale), 7),
         )
     }
 }
