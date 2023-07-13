@@ -63,7 +63,7 @@ impl Texture for Checkertexture {
 
 impl Texture for Noisetexture {
     fn value(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
-        let _hahaha = u + v;
+        let _haha = u + v;
         multi(
             multi(Vec3(1.0, 1.0, 1.0), 0.5),
             1.0 + (self.scale * p.2 + 10.0 * self.noise.turb(p, 7)).sin(),
