@@ -137,7 +137,7 @@ pub fn two_spheres(v: &mut Vec<Object>) {
 
 pub fn two_perlin_spheres(v: &mut Vec<Object>) {
     let mut perlin = Perlin {
-        ranfloat: [0.0; POINT_COUNT as usize],
+        ranvec: [Vec3(0.0, 0.0, 0.0); POINT_COUNT as usize],
         perm_x: [0; POINT_COUNT as usize],
         perm_y: [0; POINT_COUNT as usize],
         perm_z: [0; POINT_COUNT as usize],
