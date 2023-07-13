@@ -1,6 +1,8 @@
 use crate::ray::*;
+use crate::texture::*;
 use crate::tool::*;
 use crate::vec3::*;
+use std::sync::Arc;
 
 pub trait Material: Sync + Send {
     fn scatter(
@@ -10,11 +12,10 @@ pub trait Material: Sync + Send {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool;
-    fn getalbebo(&self) -> Vec3;
 }
 
 pub struct Lambertian {
-    pub albebo: Vec3,
+    pub albebo: Arc<dyn Texture>,
     //    pub name: Name,
 }
 
@@ -35,11 +36,8 @@ impl Material for Lambertian {
             tm: r_in.tm,
         };
         *scattered = ray;
-        *attenuation = self.albebo;
+        *attenuation = self.albebo.value(rec.u, rec.v, rec.p);
         true
-    }
-    fn getalbebo(&self) -> Vec3 {
-        self.albebo
     }
 }
 
@@ -80,9 +78,6 @@ impl Material for Metal {
         *scattered = ray;
         *attenuation = self.albebo;
         dot(scattered.dir, rec.normal) > 0.0
-    }
-    fn getalbebo(&self) -> Vec3 {
-        self.albebo
     }
 }
 
@@ -138,8 +133,5 @@ impl Material for Dielectric {
             tm: r_in.tm,
         };
         true
-    }
-    fn getalbebo(&self) -> Vec3 {
-        Vec3(0.0, 0.0, 0.0)
     }
 }

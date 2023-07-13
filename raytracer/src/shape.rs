@@ -39,6 +39,7 @@ impl Shape for Sphere {
                 rec.p = r.at(rec.t);
                 let outward_normal = divis(reduce(rec.p, center), radius);
                 rec.set_face_normal(r, outward_normal);
+                get_sphere_uv(outward_normal, &mut rec.u, &mut rec.v);
                 rec.num = js;
                 return true;
             }
@@ -49,6 +50,7 @@ impl Shape for Sphere {
                 rec.p = r.at(rec.t);
                 let outward_normal = divis(reduce(rec.p, center), radius);
                 rec.set_face_normal(r, outward_normal);
+                get_sphere_uv(outward_normal, &mut rec.u, &mut rec.v);
                 rec.num = js;
                 return true;
             }
@@ -85,6 +87,7 @@ impl Shape for MovingSphere {
                 rec.p = r.at(rec.t);
                 let outward_normal = divis(reduce(rec.p, self.center(r.tm)), self.radius);
                 rec.set_face_normal(r, outward_normal);
+                get_sphere_uv(outward_normal, &mut rec.u, &mut rec.v);
                 rec.num = js;
                 return true;
             }
@@ -95,6 +98,7 @@ impl Shape for MovingSphere {
                 rec.p = r.at(rec.t);
                 let outward_normal = divis(reduce(rec.p, self.center(r.tm)), self.radius);
                 rec.set_face_normal(r, outward_normal);
+                get_sphere_uv(outward_normal, &mut rec.u, &mut rec.v);
                 rec.num = js;
                 return true;
             }

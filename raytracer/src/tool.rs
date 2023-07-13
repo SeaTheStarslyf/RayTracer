@@ -1,5 +1,6 @@
 use crate::material::*;
 use crate::shape::*;
+use crate::texture::*;
 use crate::vec3::*;
 use rand::Rng;
 use std::f64::consts::PI;
@@ -93,6 +94,12 @@ pub fn schlick(cosine: f64, ref_idx: f64) -> f64 {
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0
 }
+pub fn get_sphere_uv(p: Vec3, u: &mut f64, v: &mut f64) {
+    let theta = (-p.1).acos();
+    let phi = (-p.2).atan2(p.0) + PI;
+    *u = phi / (2.0 * PI);
+    *v = theta / PI;
+}
 pub fn add(a: Vec3, b: Vec3) -> Vec3 {
     Vec3(a.0 + b.0, a.1 + b.1, a.2 + b.2)
 }
@@ -117,8 +124,16 @@ pub fn fmin(a: f64, b: f64) -> f64 {
 }
 
 pub fn random_scene(v: &mut Vec<Object>) {
+    let texture = Checkertexture {
+        odd: Arc::new(Solidcolor {
+            color: Vec3(0.2, 0.3, 0.1),
+        }),
+        even: Arc::new(Solidcolor {
+            color: Vec3(0.9, 0.9, 0.9),
+        }),
+    };
     let a = Lambertian {
-        albebo: Vec3(0.5, 0.5, 0.5),
+        albebo: Arc::new(texture),
     };
     let b = Sphere {
         cent: Vec3(0.0, -1000.0, 0.0),
@@ -142,8 +157,11 @@ pub fn random_scene(v: &mut Vec<Object>) {
                 > 0.9
             {
                 if choose_mat < 0.8 {
+                    let texture = Solidcolor {
+                        color: multivec3(random_vector(0.0, 1.0), random_vector(0.0, 1.0)),
+                    };
                     let a = Lambertian {
-                        albebo: multivec3(random_vector(0.0, 1.0), random_vector(0.0, 1.0)),
+                        albebo: Arc::new(texture),
                     };
                     let b = MovingSphere {
                         center0: center,
@@ -181,8 +199,11 @@ pub fn random_scene(v: &mut Vec<Object>) {
         radi: 1.0,
     };
     v.push((Arc::new(a), Arc::new(b)));
+    let texture = Solidcolor {
+        color: Vec3(0.4, 0.2, 0.1),
+    };
     let a = Lambertian {
-        albebo: Vec3(0.4, 0.2, 0.1),
+        albebo: Arc::new(texture),
     };
     let b = Sphere {
         cent: Vec3(-4.0, 1.0, 0.0),

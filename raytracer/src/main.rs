@@ -2,6 +2,7 @@ mod camera;
 mod material;
 mod ray;
 mod shape;
+mod texture;
 mod tool;
 mod vec3;
 use crate::camera::*;
@@ -10,6 +11,7 @@ use crate::ray::*;
 use crate::shape::*;
 use crate::tool::*;
 use crate::vec3::*;
+//use crate::texture::*;
 use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
@@ -26,6 +28,8 @@ fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
         p: Vec3(0.0, 0.0, 0.0),
         normal: Vec3(0.0, 0.0, 0.0),
         t: -1.0,
+        u: 0.0,
+        v: 0.0,
         front_face: false,
         num: -1,
     };
@@ -49,7 +53,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
             tm: 0.0,
         }; //scatter就是nexray
         let object = &v[hit.num as usize];
-        let mut attenuation = object.0.getalbebo();
+        let mut attenuation = Vec3(0.0, 0.0, 0.0);
         if object.0.scatter(&r, &hit, &mut attenuation, &mut scattered) {
             let nex = ray_color(scattered, v, depth - 1);
             return Vec3(
@@ -71,7 +75,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book2/image1.jpg");
+    let path = std::path::Path::new("output/book2/image2.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
