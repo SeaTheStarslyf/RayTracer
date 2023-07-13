@@ -44,7 +44,7 @@ fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
     hitrecord
 }
 
-fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
+fn ray_color(r: Ray, v: &Vec<Object>, background: Vec3, depth: i32) -> Vec3 {
     if depth <= 0 {
         return Vec3(0.0, 0.0, 0.0);
     }
@@ -57,28 +57,20 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
         }; //scatter就是nexray
         let object = &v[hit.num as usize];
         let mut attenuation = Vec3(0.0, 0.0, 0.0);
+        let emitted = object.0.emitted(hit.u, hit.v, hit.p);
         if object.0.scatter(&r, &hit, &mut attenuation, &mut scattered) {
-            let nex = ray_color(scattered, v, depth - 1);
-            return Vec3(
-                attenuation.0 * nex.0,
-                attenuation.1 * nex.1,
-                attenuation.2 * nex.2,
-            );
+            let nex = ray_color(scattered, v, background, depth - 1);
+            return add(emitted, multivec3(attenuation, nex));
         }
-        return Vec3(0.0, 0.0, 0.0);
+        emitted
         //            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
+    } else {
+        background
     }
-    let length: f64 = dot(r.dir, r.dir).sqrt();
-    let t: f64 = 0.5 * (r.dir.1 / length + 1.0);
-    Vec3(
-        (1.0 - t) * 1.0 + t * 0.5,
-        (1.0 - t) * 1.0 + t * 0.7,
-        (1.0 - t) * 1.0 + t * 1.0,
-    )
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book2/image14.jpg");
+    let path = std::path::Path::new("output/book2/image15.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -88,7 +80,7 @@ fn main() {
     //    let width = 400;
     //    let height = 200;
     let quality = 100;
-    let samples_per_pixel = 100;
+    let mut samples_per_pixel = 100;
     let max_depth = 50;
     //    let img: RgbImage = ImageBuffer::new(width, height);
     let mut v: Vec<(Arc<dyn Material>, Arc<dyn Shape>)> = Vec::new();
@@ -100,6 +92,7 @@ fn main() {
     };
 
     //Add Object and Camera
+    let mut background = Vec3(0.0, 0.0, 0.0);
     let mut cam = Camera {
         origin: Vec3(0.0, 0.0, 0.0),
         lower_left_corner: Vec3(0.0, 0.0, 0.0),
@@ -129,6 +122,7 @@ fn main() {
                 t0: 0.0,
                 t1: 1.0,
             };
+            background = Vec3(0.70, 0.80, 1.00);
             cam.build(para);
         }
         2 => {
@@ -144,8 +138,9 @@ fn main() {
                 aperture: 0.0, //光圈直径
                 focus_dist: 10.0,
                 t0: 0.0,
-                t1: 1.0,
+                t1: 0.0,
             };
+            background = Vec3(0.70, 0.80, 1.00);
             cam.build(para);
         }
         3 => {
@@ -161,8 +156,9 @@ fn main() {
                 aperture: 0.0, //光圈直径
                 focus_dist: 10.0,
                 t0: 0.0,
-                t1: 1.0,
+                t1: 0.0,
             };
+            background = Vec3(0.70, 0.80, 1.00);
             cam.build(para);
         }
         4 => {
@@ -178,7 +174,27 @@ fn main() {
                 aperture: 0.0, //光圈直径
                 focus_dist: 10.0,
                 t0: 0.0,
-                t1: 1.0,
+                t1: 0.0,
+            };
+            background = Vec3(0.70, 0.80, 1.00);
+            cam.build(para);
+        }
+        5 => {
+            simple_light(&mut v);
+            samples_per_pixel = 400;
+            background = Vec3(0.0, 0.0, 0.0);
+            let lookfrom1 = Vec3(26.0, 3.0, 6.0);
+            let lookat1 = Vec3(0.0, 2.0, 0.0);
+            let para = Camerapara {
+                lookfrom: lookfrom1,
+                lookat: lookat1,
+                vup: Vec3(0.0, 1.0, 0.0),
+                vfov: 20.0,
+                aspect: aspect_ratio,
+                aperture: 0.0, //光圈直径
+                focus_dist: 10.0,
+                t0: 0.0,
+                t1: 0.0,
             };
             cam.build(para);
         }
@@ -214,7 +230,7 @@ fn main() {
                             let u: f64 = (i as f64 + random_double(0.0, 1.0)) / (width as f64);
                             let w: f64 = (j as f64 + random_double(0.0, 1.0)) / (height as f64);
                             let r = cam.get_ray(u, w);
-                            let color = ray_color(r, &v, max_depth);
+                            let color = ray_color(r, &v, background, max_depth);
                             colorend = add(colorend, color);
                         }
                         let r: f64 = (colorend.0 / (samples_per_pixel as f64)).sqrt() * 255.999;

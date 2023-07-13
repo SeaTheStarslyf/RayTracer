@@ -12,11 +12,26 @@ pub trait Material: Sync + Send {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool;
+    fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3;
 }
 
 pub struct Lambertian {
     pub albebo: Arc<dyn Texture>,
     //    pub name: Name,
+}
+
+pub struct Metal {
+    pub albebo: Vec3,
+    pub fuzz: f64,
+    //    pub name: Name,
+}
+
+pub struct Dielectric {
+    pub ref_idx: f64,
+}
+
+pub struct Diffuselight {
+    pub emit: Arc<dyn Texture>,
 }
 
 impl Material for Lambertian {
@@ -39,12 +54,9 @@ impl Material for Lambertian {
         *attenuation = self.albebo.value(rec.u, rec.v, rec.p);
         true
     }
-}
-
-pub struct Metal {
-    pub albebo: Vec3,
-    pub fuzz: f64,
-    //    pub name: Name,
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Material for Metal {
@@ -79,10 +91,9 @@ impl Material for Metal {
         *attenuation = self.albebo;
         dot(scattered.dir, rec.normal) > 0.0
     }
-}
-
-pub struct Dielectric {
-    pub ref_idx: f64,
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Material for Dielectric {
@@ -133,5 +144,23 @@ impl Material for Dielectric {
             tm: r_in.tm,
         };
         true
+    }
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+}
+
+impl Material for Diffuselight {
+    fn scatter(
+        &self,
+        _r_in: &Ray,
+        _rec: &Hitrecord,
+        _attenuation: &mut Vec3,
+        _scattered: &mut Ray,
+    ) -> bool {
+        false
+    }
+    fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
+        self.emit.value(u, v, p)
     }
 }

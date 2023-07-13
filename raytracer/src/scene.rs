@@ -181,3 +181,48 @@ pub fn earth(v: &mut Vec<Object>) {
     };
     v.push((Arc::new(a), Arc::new(b)));
 }
+
+pub fn simple_light(v: &mut Vec<Object>) {
+    let mut perlin = Perlin {
+        ranvec: [Vec3(0.0, 0.0, 0.0); POINT_COUNT as usize],
+        perm_x: [0; POINT_COUNT as usize],
+        perm_y: [0; POINT_COUNT as usize],
+        perm_z: [0; POINT_COUNT as usize],
+    };
+    perlin.build();
+    let texture = Noisetexture {
+        noise: perlin,
+        scale: 4.0,
+    };
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, -1000.0, 0.0),
+        radi: 1000.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(texture),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, 2.0, 0.0),
+        radi: 2.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let texture = Solidcolor {
+        color: Vec3(4.0, 4.0, 4.0),
+    };
+    let a = Diffuselight {
+        emit: Arc::new(texture),
+    };
+    let b = Xyrect {
+        x0: 3.0,
+        x1: 5.0,
+        y0: 1.0,
+        y1: 3.0,
+        k: -2.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+}
