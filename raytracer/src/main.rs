@@ -14,10 +14,9 @@ use console::style;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 //use std::f64::consts::PI;
-use std::{fs::File, process::exit};
-
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::{fs::File, process::exit};
 
 type Object = (Arc<dyn Material>, Arc<dyn Shape>);
 
@@ -31,7 +30,7 @@ fn hit_shape(v: &[Object], r: Ray) -> Hitrecord {
         num: -1,
     };
     for (js, i) in (0_i32..).zip(v.iter()) {
-        if i.1.gethit(r, &mut hitrecord, ans, js) {
+        if i.1.gethit(r, &mut hitrecord, 0.001, ans, js) {
             ans = hitrecord.t;
         }
     }
@@ -47,6 +46,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
         let mut scattered = Ray {
             ori: Vec3(0.0, 0.0, 0.0),
             dir: Vec3(0.0, 0.0, 0.0),
+            tm: 0.0,
         }; //scatter就是nexray
         let object = &v[hit.num as usize];
         let mut attenuation = object.0.getalbebo();
@@ -71,17 +71,17 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image21.jpg");
+    let path = std::path::Path::new("output/book2/image1.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
-    let aspect_ratio = 3.0 / 2.0;
-    let width = 1200;
+    let aspect_ratio = 16.0 / 9.0;
+    let width = 400;
     let height = (width as f64 / aspect_ratio) as u32;
     //    let width = 400;
     //    let height = 200;
     let quality = 100;
-    let samples_per_pixel = 500;
+    let samples_per_pixel = 100;
     let max_depth = 50;
     //    let img: RgbImage = ImageBuffer::new(width, height);
     let mut v: Vec<(Arc<dyn Material>, Arc<dyn Shape>)> = Vec::new();
@@ -105,6 +105,8 @@ fn main() {
         v: Vec3(0.0, 0.0, 0.0),
         w: Vec3(0.0, 0.0, 0.0),
         lens_radius: 0.0,
+        time0: 0.0,
+        time1: 0.0,
     };
     let lookfrom1 = Vec3(13.0, 2.0, 3.0);
     let lookat1 = Vec3(0.0, 0.0, 0.0);
@@ -116,6 +118,8 @@ fn main() {
         aspect: aspect_ratio,
         aperture: 0.1, //光圈直径
         focus_dist: 10.0,
+        t0: 0.0,
+        t1: 1.0,
     };
     cam.build(para);
 
@@ -123,8 +127,8 @@ fn main() {
     let shared_v: Arc<Mutex<Vec<Object>>> = Arc::new(Mutex::new(v));
     let img: Arc<Mutex<RgbImage>> = Arc::new(Mutex::new(ImageBuffer::new(width, height)));
     let threads = 6; // 获取可用CPU核心数
-                     //    let threads = num_cpus::get();
     let rows_per_thread = height as f64 / threads as f64;
+    //    let threads = num_cpus::get();
 
     let handles: Vec<_> = (0..threads)
         .map(|tid| {

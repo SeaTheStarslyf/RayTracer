@@ -5,6 +5,7 @@ use crate::vec3::*;
 pub struct Ray {
     pub ori: Vec3,
     pub dir: Vec3,
+    pub tm: f64,
 }
 
 #[derive(Copy, Clone)]

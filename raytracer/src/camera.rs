@@ -12,6 +12,8 @@ pub struct Camera {
     pub v: Vec3,
     pub w: Vec3,
     pub lens_radius: f64,
+    pub time0: f64,
+    pub time1: f64,
 }
 
 #[derive(Copy, Clone)]
@@ -23,12 +25,16 @@ pub struct Camerapara {
     pub aspect: f64,
     pub aperture: f64,
     pub focus_dist: f64,
+    pub t0: f64,
+    pub t1: f64,
 }
 
 impl Camera {
     pub fn build(&mut self, camera: Camerapara) {
         self.origin = camera.lookfrom;
         self.lens_radius = camera.aperture / 2.0;
+        self.time0 = camera.t0;
+        self.time1 = camera.t1;
 
         let theta = degrees_to_radians(camera.vfov);
         let half_height = (theta / 2.0).tan();
@@ -63,6 +69,7 @@ impl Camera {
                 ),
                 offset,
             ),
+            tm: random_double(self.time0, self.time1),
         }
     }
 }

@@ -3,8 +3,8 @@ use crate::shape::*;
 use crate::vec3::*;
 use rand::Rng;
 use std::f64::consts::PI;
-
 use std::sync::Arc;
+
 type Object = (Arc<dyn Material>, Arc<dyn Shape>);
 
 /*pub enum Name {
@@ -145,9 +145,12 @@ pub fn random_scene(v: &mut Vec<Object>) {
                     let a = Lambertian {
                         albebo: multivec3(random_vector(0.0, 1.0), random_vector(0.0, 1.0)),
                     };
-                    let b = Sphere {
-                        cent: center,
-                        radi: 0.2,
+                    let b = MovingSphere {
+                        center0: center,
+                        center1: add(center, Vec3(0.0, random_double(0.0, 0.5), 0.0)),
+                        time0: 0.0,
+                        time1: 1.0,
+                        radius: 0.2,
                     };
                     v.push((Arc::new(a), Arc::new(b)));
                 } else if choose_mat < 0.95 {

@@ -32,6 +32,7 @@ impl Material for Lambertian {
         let ray = Ray {
             ori: rec.p,
             dir: scatter_direction,
+            tm: r_in.tm,
         };
         *scattered = ray;
         *attenuation = self.albebo;
@@ -74,6 +75,7 @@ impl Material for Metal {
                     self.fuzz * random.2,
                 ),
             ),
+            tm: r_in.tm,
         };
         *scattered = ray;
         *attenuation = self.albebo;
@@ -115,6 +117,7 @@ impl Material for Dielectric {
             *scattered = Ray {
                 ori: rec.p,
                 dir: reflected,
+                tm: r_in.tm,
             };
             return true;
         }
@@ -124,6 +127,7 @@ impl Material for Dielectric {
             *scattered = Ray {
                 ori: rec.p,
                 dir: reflected,
+                tm: r_in.tm,
             };
             return true;
         }
@@ -131,6 +135,7 @@ impl Material for Dielectric {
         *scattered = Ray {
             ori: rec.p,
             dir: refracted,
+            tm: r_in.tm,
         };
         true
     }
