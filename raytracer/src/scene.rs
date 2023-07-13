@@ -143,7 +143,10 @@ pub fn two_perlin_spheres(v: &mut Vec<Object>) {
         perm_z: [0; POINT_COUNT as usize],
     };
     perlin.build();
-    let texture = Noisetexture { noise: perlin };
+    let texture = Noisetexture {
+        noise: perlin,
+        scale: 4.0,
+    };
     let a = Lambertian {
         albebo: Arc::new(texture.clone()),
     };

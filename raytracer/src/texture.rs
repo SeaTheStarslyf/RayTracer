@@ -22,6 +22,7 @@ pub struct Checkertexture {
 #[derive(Clone)]
 pub struct Noisetexture {
     pub noise: Perlin,
+    pub scale: f64,
 }
 
 impl Texture for Solidcolor {
@@ -45,6 +46,6 @@ impl Texture for Checkertexture {
 impl Texture for Noisetexture {
     fn value(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
         let _haha = u + v;
-        multi(Vec3(1.0, 1.0, 1.0), self.noise.noise(p))
+        multi(Vec3(1.0, 1.0, 1.0), self.noise.noise(multi(p, self.scale)))
     }
 }
