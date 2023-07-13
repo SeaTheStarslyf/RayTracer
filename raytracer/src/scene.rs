@@ -1,9 +1,12 @@
 use crate::material::*;
+use crate::perlin::Perlin;
 use crate::shape::*;
 use crate::texture::*;
 use crate::tool::*;
 use crate::vec3::*;
 use std::sync::Arc;
+
+const POINT_COUNT: i32 = 256;
 
 type Object = (Arc<dyn Material>, Arc<dyn Shape>);
 
@@ -128,6 +131,33 @@ pub fn two_spheres(v: &mut Vec<Object>) {
     let b = Sphere {
         cent: Vec3(0.0, 10.0, 0.0),
         radi: 10.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+}
+
+pub fn two_perlin_spheres(v: &mut Vec<Object>) {
+    let mut perlin = Perlin {
+        ranfloat: [0.0; POINT_COUNT as usize],
+        perm_x: [0; POINT_COUNT as usize],
+        perm_y: [0; POINT_COUNT as usize],
+        perm_z: [0; POINT_COUNT as usize],
+    };
+    perlin.build();
+    let texture = Noisetexture { noise: perlin };
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, -1000.0, 0.0),
+        radi: 1000.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(texture),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, 2.0, 0.0),
+        radi: 2.0,
     };
     v.push((Arc::new(a), Arc::new(b)));
 }

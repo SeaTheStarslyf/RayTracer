@@ -1,4 +1,5 @@
 //use crate::ray::*;
+use crate::perlin::*;
 use crate::tool::*;
 use crate::vec3::*;
 use std::sync::Arc;
@@ -18,6 +19,11 @@ pub struct Checkertexture {
     pub even: Arc<dyn Texture>,
 }
 
+#[derive(Clone)]
+pub struct Noisetexture {
+    pub noise: Perlin,
+}
+
 impl Texture for Solidcolor {
     fn value(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
         let _haha = multi(p, u + v);
@@ -33,5 +39,12 @@ impl Texture for Checkertexture {
         } else {
             self.even.value(u, v, p)
         }
+    }
+}
+
+impl Texture for Noisetexture {
+    fn value(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
+        let _haha = u + v;
+        multi(Vec3(1.0, 1.0, 1.0), self.noise.noise(p))
     }
 }
