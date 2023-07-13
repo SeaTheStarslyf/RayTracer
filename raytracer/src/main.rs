@@ -122,8 +122,8 @@ fn main() {
     //Render
     let shared_v: Arc<Mutex<Vec<Object>>> = Arc::new(Mutex::new(v));
     let img: Arc<Mutex<RgbImage>> = Arc::new(Mutex::new(ImageBuffer::new(width, height)));
-    //    let threads = 6; // 获取可用CPU核心数
-    let threads = num_cpus::get();
+    let threads = 6; // 获取可用CPU核心数
+                     //    let threads = num_cpus::get();
     let rows_per_thread = height as f64 / threads as f64;
 
     let handles: Vec<_> = (0..threads)
