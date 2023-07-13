@@ -226,3 +226,85 @@ pub fn simple_light(v: &mut Vec<Object>) {
     };
     v.push((Arc::new(a), Arc::new(b)));
 }
+
+pub fn cornell_box(v: &mut Vec<Object>) {
+    let light = Solidcolor {
+        color: Vec3(15.0, 15.0, 15.0),
+    };
+    let red = Solidcolor {
+        color: Vec3(0.65, 0.05, 0.05),
+    };
+    let white = Solidcolor {
+        color: Vec3(0.73, 0.73, 0.73),
+    };
+    let green = Solidcolor {
+        color: Vec3(0.12, 0.45, 0.15),
+    };
+
+    let a = Lambertian {
+        albebo: Arc::new(green),
+    };
+    let b = Yzrect {
+        y0: 0.0,
+        y1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 555.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(red),
+    };
+    let b = Yzrect {
+        y0: 0.0,
+        y1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 0.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Diffuselight {
+        emit: Arc::new(light),
+    };
+    let b = Xzrect {
+        x0: 213.0,
+        x1: 343.0,
+        z0: 227.0,
+        z1: 332.0,
+        k: 554.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(white.clone()),
+    };
+    let b = Xzrect {
+        x0: 0.0,
+        x1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 0.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(white.clone()),
+    };
+    let b = Xzrect {
+        x0: 0.0,
+        x1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 555.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(white),
+    };
+    let b = Xyrect {
+        x0: 0.0,
+        x1: 555.0,
+        y0: 0.0,
+        y1: 555.0,
+        k: 555.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+}
