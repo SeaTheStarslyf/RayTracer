@@ -164,3 +164,20 @@ pub fn two_perlin_spheres(v: &mut Vec<Object>) {
     };
     v.push((Arc::new(a), Arc::new(b)));
 }
+
+pub fn earth(v: &mut Vec<Object>) {
+    let mut texture = Imagetexture {
+        data: None,
+        width: 0,
+        height: 0,
+    };
+    texture.build("raytracer/sources/earthmap.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, 0.0, 0.0),
+        radi: 2.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+}

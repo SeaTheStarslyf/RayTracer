@@ -78,7 +78,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book2/image13.jpg");
+    let path = std::path::Path::new("output/book2/image14.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -112,7 +112,7 @@ fn main() {
         time0: 0.0,
         time1: 0.0,
     };
-    let number = 3;
+    let number = 4;
     match number {
         1 => {
             random_scene(&mut v);
@@ -150,6 +150,23 @@ fn main() {
         }
         3 => {
             two_perlin_spheres(&mut v);
+            let lookfrom1 = Vec3(13.0, 2.0, 3.0);
+            let lookat1 = Vec3(0.0, 0.0, 0.0);
+            let para = Camerapara {
+                lookfrom: lookfrom1,
+                lookat: lookat1,
+                vup: Vec3(0.0, 1.0, 0.0),
+                vfov: 20.0,
+                aspect: aspect_ratio,
+                aperture: 0.0, //光圈直径
+                focus_dist: 10.0,
+                t0: 0.0,
+                t1: 1.0,
+            };
+            cam.build(para);
+        }
+        4 => {
+            earth(&mut v);
             let lookfrom1 = Vec3(13.0, 2.0, 3.0);
             let lookat1 = Vec3(0.0, 0.0, 0.0);
             let para = Camerapara {
