@@ -33,12 +33,16 @@ impl Perlin {
         self.perm_z = perlin_generate_perm();
     }
     pub fn noise(&self, p: Vec3) -> f64 {
-        let mut u = p.0 - p.0.floor();
+        let u = p.0 - p.0.floor();
+        let v = p.1 - p.1.floor();
+        let w = p.2 - p.2.floor();
+
+        /*        let mut u = p.0 - p.0.floor();
         let mut v = p.1 - p.1.floor();
         let mut w = p.2 - p.2.floor();
         u = u * u * (3.0 - 2.0 * u);
         v = v * v * (3.0 - 2.0 * v);
-        w = w * w * (3.0 - 2.0 * w);
+        w = w * w * (3.0 - 2.0 * w);*/
 
         let i = p.0.floor() as i32;
         let j = p.1.floor() as i32;
