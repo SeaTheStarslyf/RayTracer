@@ -15,21 +15,25 @@ pub trait Material: Sync + Send {
     fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3;
 }
 
+#[derive(Clone)]
 pub struct Lambertian {
     pub albebo: Arc<dyn Texture>,
     //    pub name: Name,
 }
 
+#[derive(Clone)]
 pub struct Metal {
     pub albebo: Vec3,
     pub fuzz: f64,
     //    pub name: Name,
 }
 
+#[derive(Clone)]
 pub struct Dielectric {
     pub ref_idx: f64,
 }
 
+#[derive(Clone)]
 pub struct Diffuselight {
     pub emit: Arc<dyn Texture>,
 }

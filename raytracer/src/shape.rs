@@ -1,12 +1,16 @@
+use crate::material::*;
 use crate::ray::*;
+use crate::texture::*;
 use crate::tool::*;
 use crate::vec3::*;
+use std::sync::Arc;
 
 pub trait Shape: Sync + Send {
     //    fn getcent(&self) -> Vec3;
     //    fn getradi(&self) -> f64;
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool;
     fn center(&self, time: f64) -> Vec3;
+    fn buildbox(&mut self, p0: Vec3, p1: Vec3, texture: Arc<dyn Texture>);
 }
 
 pub struct Sphere {
@@ -44,6 +48,17 @@ pub struct Yzrect {
     pub z0: f64,
     pub z1: f64,
     pub k: f64,
+}
+
+pub struct Box {
+    pub box_min: Vec3,
+    pub box_max: Vec3,
+    pub sides: Vec<(Arc<dyn Material>, Arc<dyn Shape>)>,
+}
+
+pub struct Translate {
+    pub ptr: Arc<dyn Shape>,
+    pub offset: Vec3,
 }
 
 impl Shape for Sphere {
@@ -84,12 +99,7 @@ impl Shape for Sphere {
     fn center(&self, _time: f64) -> Vec3 {
         Vec3(0.0, 0.0, 0.0)
     }
-    /*    fn getcent(&self) -> Vec3 {
-        self.cent
-    }
-    fn getradi(&self) -> f64 {
-        self.radi
-    }*/
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
 }
 
 impl Shape for MovingSphere {
@@ -138,6 +148,7 @@ impl Shape for MovingSphere {
             ),
         )
     }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
 }
 
 impl Shape for Xzrect {
@@ -163,6 +174,7 @@ impl Shape for Xzrect {
     fn center(&self, _time: f64) -> Vec3 {
         Vec3(0.0, 0.0, 0.0)
     }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
 }
 
 impl Shape for Yzrect {
@@ -188,6 +200,7 @@ impl Shape for Yzrect {
     fn center(&self, _time: f64) -> Vec3 {
         Vec3(0.0, 0.0, 0.0)
     }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
 }
 
 impl Shape for Xyrect {
@@ -213,4 +226,101 @@ impl Shape for Xyrect {
     fn center(&self, _time: f64) -> Vec3 {
         Vec3(0.0, 0.0, 0.0)
     }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+}
+
+impl Shape for Box {
+    fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
+        let mut ans = t_max;
+        for (_haha, i) in (0_i32..).zip(self.sides.iter()) {
+            if i.1.gethit(r, rec, t_min, ans, js) {
+                ans = rec.t;
+            }
+        }
+        if ans == t_max {
+            return false;
+        }
+        true
+    }
+    fn center(&self, _time: f64) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn buildbox(&mut self, p0: Vec3, p1: Vec3, texture: Arc<dyn Texture>) {
+        self.sides = Vec::new();
+        self.box_min = p0;
+        self.box_max = p1;
+
+        let a = Lambertian { albebo: texture };
+
+        let b = Xyrect {
+            x0: p0.0,
+            x1: p1.0,
+            y0: p0.1,
+            y1: p1.1,
+            k: p1.2,
+        };
+        self.sides.push((Arc::new(a.clone()), Arc::new(b)));
+        let b = Xyrect {
+            x0: p0.0,
+            x1: p1.0,
+            y0: p0.1,
+            y1: p1.1,
+            k: p0.2,
+        };
+        self.sides.push((Arc::new(a.clone()), Arc::new(b)));
+
+        let b = Xzrect {
+            x0: p0.0,
+            x1: p1.0,
+            z0: p0.2,
+            z1: p1.2,
+            k: p1.1,
+        };
+        self.sides.push((Arc::new(a.clone()), Arc::new(b)));
+        let b = Xzrect {
+            x0: p0.0,
+            x1: p1.0,
+            z0: p0.2,
+            z1: p1.2,
+            k: p0.1,
+        };
+        self.sides.push((Arc::new(a.clone()), Arc::new(b)));
+
+        let b = Yzrect {
+            y0: p0.1,
+            y1: p1.1,
+            z0: p0.2,
+            z1: p1.2,
+            k: p1.0,
+        };
+        self.sides.push((Arc::new(a.clone()), Arc::new(b)));
+        let b = Yzrect {
+            y0: p0.1,
+            y1: p1.1,
+            z0: p0.2,
+            z1: p1.2,
+            k: p0.0,
+        };
+        self.sides.push((Arc::new(a), Arc::new(b)));
+    }
+}
+
+impl Shape for Translate {
+    fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
+        let moved_r = Ray {
+            ori: reduce(r.ori, self.offset),
+            dir: r.dir,
+            tm: r.tm,
+        };
+        if !self.ptr.gethit(moved_r, rec, t_min, t_max, js) {
+            return false;
+        }
+        rec.p = add(rec.p, self.offset);
+        rec.set_face_normal(moved_r, rec.normal);
+        true
+    }
+    fn center(&self, _time: f64) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
 }

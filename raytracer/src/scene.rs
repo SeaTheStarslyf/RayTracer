@@ -297,7 +297,7 @@ pub fn cornell_box(v: &mut Vec<Object>) {
     };
     v.push((Arc::new(a), Arc::new(b)));
     let a = Lambertian {
-        albebo: Arc::new(white),
+        albebo: Arc::new(white.clone()),
     };
     let b = Xyrect {
         x0: 0.0,
@@ -306,5 +306,34 @@ pub fn cornell_box(v: &mut Vec<Object>) {
         y1: 555.0,
         k: 555.0,
     };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let a = Lambertian {
+        albebo: Arc::new(white.clone()),
+    };
+    let mut b = Box {
+        box_max: Vec3(0.0, 0.0, 0.0),
+        box_min: Vec3(0.0, 0.0, 0.0),
+        sides: Vec::new(),
+    };
+    b.buildbox(
+        Vec3(130.0, 0.0, 65.0),
+        Vec3(295.0, 165.0, 230.0),
+        Arc::new(white.clone()),
+    );
+    v.push((Arc::new(a), Arc::new(b)));
+    let a = Lambertian {
+        albebo: Arc::new(white.clone()),
+    };
+    let mut b = Box {
+        box_max: Vec3(0.0, 0.0, 0.0),
+        box_min: Vec3(0.0, 0.0, 0.0),
+        sides: Vec::new(),
+    };
+    b.buildbox(
+        Vec3(265.0, 0.0, 295.0),
+        Vec3(430.0, 330.0, 460.0),
+        Arc::new(white),
+    );
     v.push((Arc::new(a), Arc::new(b)));
 }
