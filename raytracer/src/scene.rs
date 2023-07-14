@@ -509,23 +509,20 @@ pub fn final_scene(v: &mut Vec<Object>) {
         cent: Vec3(360.0, 150.0, 145.0),
         radi: 70.0,
     };
-    v.push((Arc::new(a.clone()), Arc::new(b.clone())));
+    v.push((Arc::new(a), Arc::new(b.clone())));
 
     let col = Solidcolor {
         color: Vec3(0.2, 0.4, 0.9),
     };
-    /*     let a = Lambertian {
-        albebo: Arc::new(col.clone()),
-    };*/
     let f = Isotropic {
         albebo: Arc::new(col),
     };
     let frg = Constantmedium {
         boundary: Arc::new(b),
-        phase_function: Arc::new(f),
+        phase_function: Arc::new(f.clone()),
         neg_inv_density: -1.0 / 0.2,
     };
-    v.push((Arc::new(a), Arc::new(frg)));
+    v.push((Arc::new(f), Arc::new(frg)));
 
     let a = Dielectric { ref_idx: 1.5 };
     let b = Sphere {

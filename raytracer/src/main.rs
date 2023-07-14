@@ -215,7 +215,7 @@ fn main() {
             final_scene(&mut v);
             aspect_ratio = 1.0;
             width = 800;
-            samples_per_pixel = 50;
+            samples_per_pixel = 500;
             background = Vec3(0.0, 0.0, 0.0);
             let lookfrom1 = Vec3(478.0, 278.0, -600.0);
             let lookat1 = Vec3(278.0, 278.0, 0.0);
