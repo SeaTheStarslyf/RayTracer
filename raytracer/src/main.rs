@@ -163,7 +163,7 @@ fn main() {
                 vup: Vec3(0.0, 1.0, 0.0),
                 vfov: 20.0,
                 aspect: aspect_ratio,
-                aperture: 0.0, //光圈直径
+                aperture: 0.0, //光圈的直径
                 focus_dist: 10.0,
                 t0: 0.0,
                 t1: 0.0,
@@ -183,7 +183,7 @@ fn main() {
                 vup: Vec3(0.0, 1.0, 0.0),
                 vfov: 20.0,
                 aspect: aspect_ratio,
-                aperture: 0.0, //光圈直径
+                aperture: 0.0, //光圈的直径
                 focus_dist: 10.0,
                 t0: 0.0,
                 t1: 0.0,
