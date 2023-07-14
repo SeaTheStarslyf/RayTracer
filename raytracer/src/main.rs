@@ -63,7 +63,6 @@ fn ray_color(r: Ray, v: &Vec<Object>, background: Vec3, depth: i32) -> Vec3 {
             return add(emitted, multivec3(attenuation, nex));
         }
         emitted
-        //            return Vec3(0.5 * (n.0 + 1.0), 0.5 * (n.1 + 1.0), 0.5 * (n.2 + 1.0));
     } else {
         background
     }
