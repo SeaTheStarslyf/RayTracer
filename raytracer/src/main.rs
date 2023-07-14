@@ -194,7 +194,7 @@ fn main() {
             cornell_box(&mut v);
             aspect_ratio = 1.0;
             width = 600;
-            samples_per_pixel = 50;
+            samples_per_pixel = 200;
             background = Vec3(0.0, 0.0, 0.0);
             let lookfrom1 = Vec3(278.0, 278.0, -800.0);
             let lookat1 = Vec3(278.0, 278.0, 0.0);
