@@ -11,13 +11,18 @@ pub trait Shape: Sync + Send {
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool;
     fn center(&self, time: f64) -> Vec3;
     fn buildbox(&mut self, p0: Vec3, p1: Vec3, texture: Arc<dyn Texture>);
+    fn buildrotate(&mut self, p: Arc<dyn Shape>, angle: f64);
+    fn getmin(&self) -> Vec3;
+    fn getmax(&self) -> Vec3;
 }
 
+#[derive(Clone)]
 pub struct Sphere {
     pub cent: Vec3,
     pub radi: f64,
 }
 
+#[derive(Clone)]
 pub struct MovingSphere {
     pub center0: Vec3,
     pub center1: Vec3,
@@ -26,6 +31,7 @@ pub struct MovingSphere {
     pub radius: f64,
 }
 
+#[derive(Clone)]
 pub struct Xyrect {
     pub x0: f64,
     pub x1: f64,
@@ -34,6 +40,7 @@ pub struct Xyrect {
     pub k: f64,
 }
 
+#[derive(Clone)]
 pub struct Xzrect {
     pub x0: f64,
     pub x1: f64,
@@ -42,6 +49,7 @@ pub struct Xzrect {
     pub k: f64,
 }
 
+#[derive(Clone)]
 pub struct Yzrect {
     pub y0: f64,
     pub y1: f64,
@@ -50,16 +58,30 @@ pub struct Yzrect {
     pub k: f64,
 }
 
+#[derive(Clone)]
 pub struct Box {
     pub box_min: Vec3,
     pub box_max: Vec3,
     pub sides: Vec<(Arc<dyn Material>, Arc<dyn Shape>)>,
+    pub trans: Arc<dyn Shape>,
+    pub rotat: Arc<dyn Shape>,
 }
 
+#[derive(Clone)]
 pub struct Translate {
     pub ptr: Arc<dyn Shape>,
     pub offset: Vec3,
 }
+
+#[derive(Clone)]
+pub struct Rotatey {
+    pub ptr: Arc<dyn Shape>,
+    pub sin_theta: f64,
+    pub cos_theta: f64,
+}
+
+#[derive(Clone)]
+pub struct Constantmedium {}
 
 impl Shape for Sphere {
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
@@ -100,6 +122,13 @@ impl Shape for Sphere {
         Vec3(0.0, 0.0, 0.0)
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Shape for MovingSphere {
@@ -149,6 +178,13 @@ impl Shape for MovingSphere {
         )
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Shape for Xzrect {
@@ -175,6 +211,13 @@ impl Shape for Xzrect {
         Vec3(0.0, 0.0, 0.0)
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Shape for Yzrect {
@@ -201,6 +244,13 @@ impl Shape for Yzrect {
         Vec3(0.0, 0.0, 0.0)
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Shape for Xyrect {
@@ -227,12 +277,22 @@ impl Shape for Xyrect {
         Vec3(0.0, 0.0, 0.0)
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }
 
 impl Shape for Box {
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
         let mut ans = t_max;
         for (_haha, i) in (0_i32..).zip(self.sides.iter()) {
+            //            let _ifhit = i.1.gethit(r, rec, t_min, ans, js);
+            //            let _ifhit = self.rotat.gethit(r, rec, t_min, ans, js);
+            //           let ifhit = self.trans.gethit(r, rec, t_min, ans, js);
             if i.1.gethit(r, rec, t_min, ans, js) {
                 ans = rec.t;
             }
@@ -303,6 +363,13 @@ impl Shape for Box {
         };
         self.sides.push((Arc::new(a), Arc::new(b)));
     }
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        self.box_max
+    }
+    fn getmin(&self) -> Vec3 {
+        self.box_min
+    }
 }
 
 impl Shape for Translate {
@@ -323,4 +390,96 @@ impl Shape for Translate {
         Vec3(0.0, 0.0, 0.0)
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+}
+
+impl Shape for Rotatey {
+    fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
+        let mut origin = r.ori;
+        let mut direction = r.dir;
+
+        origin.0 = self.cos_theta * r.ori.0 - self.sin_theta * r.ori.2;
+        origin.2 = self.sin_theta * r.ori.0 + self.cos_theta * r.ori.2;
+
+        direction.0 = self.cos_theta * r.dir.0 - self.sin_theta * r.dir.2;
+        direction.2 = self.sin_theta * r.dir.0 + self.cos_theta * r.dir.2;
+
+        let rotated_r = Ray {
+            ori: origin,
+            dir: direction,
+            tm: r.tm,
+        };
+
+        if !self.ptr.gethit(rotated_r, rec, t_min, t_max, js) {
+            return false;
+        }
+
+        let mut p = rec.p;
+        let mut normal = rec.normal;
+
+        p.0 = self.cos_theta * rec.p.0 + self.sin_theta * rec.p.2;
+        p.2 = -self.sin_theta * rec.p.0 + self.cos_theta * rec.p.2;
+
+        normal.0 = self.cos_theta * rec.normal.0 + self.sin_theta * rec.normal.2;
+        normal.2 = -self.sin_theta * rec.normal.0 + self.cos_theta * rec.normal.2;
+
+        rec.p = p;
+        rec.set_face_normal(rotated_r, normal);
+
+        true
+    }
+    fn buildrotate(&mut self, p: Arc<dyn Shape>, angle: f64) {
+        let randians = degrees_to_radians(angle);
+        self.sin_theta = randians.sin();
+        self.cos_theta = randians.cos();
+
+        let mut min = Vec3(
+            100000000000000000.0,
+            100000000000000000.0,
+            100000000000000000.0,
+        );
+        let mut max = Vec3(
+            -100000000000000000.0,
+            -100000000000000000.0,
+            -100000000000000000.0,
+        );
+
+        for i in 0..2 {
+            for j in 0..2 {
+                for k in 0..2 {
+                    let x = i as f64 * p.getmax().0 + (1 - i) as f64 * p.getmin().0;
+                    let y = j as f64 * p.getmax().1 + (1 - j) as f64 * p.getmin().1;
+                    let z = k as f64 * p.getmax().2 + (1 - k) as f64 * p.getmin().2;
+
+                    let newx = self.cos_theta * x + self.sin_theta * z;
+                    let newz = -self.sin_theta * x + self.cos_theta * z;
+
+                    let tester = Vec3(newx, y, newz);
+
+                    min.0 = f64::min(min.0, tester.0);
+                    max.0 = f64::max(max.0, tester.0);
+                    min.1 = f64::min(min.1, tester.1);
+                    max.1 = f64::max(max.1, tester.1);
+                    min.2 = f64::min(min.2, tester.2);
+                    max.2 = f64::max(max.2, tester.2);
+                }
+            }
+        }
+    }
+    fn center(&self, _time: f64) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
 }

@@ -306,34 +306,66 @@ pub fn cornell_box(v: &mut Vec<Object>) {
         y1: 555.0,
         k: 555.0,
     };
-    v.push((Arc::new(a), Arc::new(b)));
+    v.push((Arc::new(a), Arc::new(b.clone())));
 
     let a = Lambertian {
         albebo: Arc::new(white.clone()),
     };
+    let randians = degrees_to_radians(15.0);
+    let sin_theta1 = randians.sin();
+    let cos_theta1 = randians.cos();
+    let mut rotatey = Rotatey {
+        ptr: Arc::new(b.clone()),
+        sin_theta: sin_theta1,
+        cos_theta: cos_theta1,
+    };
+    let mut translate = Translate {
+        ptr: Arc::new(b),
+        offset: Vec3(265.0, 0.0, 295.0),
+    };
     let mut b = Box {
         box_max: Vec3(0.0, 0.0, 0.0),
         box_min: Vec3(0.0, 0.0, 0.0),
         sides: Vec::new(),
+        rotat: Arc::new(rotatey.clone()),
+        trans: Arc::new(translate.clone()),
     };
     b.buildbox(
-        Vec3(130.0, 0.0, 65.0),
-        Vec3(295.0, 165.0, 230.0),
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(165.0, 330.0, 165.0),
         Arc::new(white.clone()),
     );
-    v.push((Arc::new(a), Arc::new(b)));
+    rotatey.ptr = Arc::new(b.clone());
+    translate.ptr = Arc::new(rotatey);
+    v.push((Arc::new(a), Arc::new(translate)));
     let a = Lambertian {
         albebo: Arc::new(white.clone()),
     };
+    let randians = degrees_to_radians(-18.0);
+    let sin_theta1 = randians.sin();
+    let cos_theta1 = randians.cos();
+    let mut rotatey = Rotatey {
+        ptr: Arc::new(b.clone()),
+        sin_theta: sin_theta1,
+        cos_theta: cos_theta1,
+    };
+    let mut translate = Translate {
+        ptr: Arc::new(b),
+        offset: Vec3(130.0, 0.0, 65.0),
+    };
     let mut b = Box {
         box_max: Vec3(0.0, 0.0, 0.0),
         box_min: Vec3(0.0, 0.0, 0.0),
         sides: Vec::new(),
+        rotat: Arc::new(rotatey.clone()),
+        trans: Arc::new(translate.clone()),
     };
     b.buildbox(
-        Vec3(265.0, 0.0, 295.0),
-        Vec3(430.0, 330.0, 460.0),
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(165.0, 165.0, 165.0),
         Arc::new(white),
     );
-    v.push((Arc::new(a), Arc::new(b)));
+    rotatey.ptr = Arc::new(b.clone());
+    translate.ptr = Arc::new(rotatey);
+    v.push((Arc::new(a), Arc::new(translate)));
 }
