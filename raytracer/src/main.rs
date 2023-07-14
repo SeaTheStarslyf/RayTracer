@@ -69,7 +69,7 @@ fn ray_color(r: Ray, v: &Vec<Object>, background: Vec3, depth: i32) -> Vec3 {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book2/image21.jpg");
+    let path = std::path::Path::new("output/book2/image22.jpg");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -97,7 +97,7 @@ fn main() {
         time0: 0.0,
         time1: 0.0,
     };
-    let number = 6;
+    let number = 7;
     match number {
         1 => {
             random_scene(&mut v);
@@ -197,6 +197,27 @@ fn main() {
             samples_per_pixel = 200;
             background = Vec3(0.0, 0.0, 0.0);
             let lookfrom1 = Vec3(278.0, 278.0, -800.0);
+            let lookat1 = Vec3(278.0, 278.0, 0.0);
+            let para = Camerapara {
+                lookfrom: lookfrom1,
+                lookat: lookat1,
+                vup: Vec3(0.0, 1.0, 0.0),
+                vfov: 40.0,
+                aspect: aspect_ratio,
+                aperture: 0.0, //光圈直径
+                focus_dist: 10.0,
+                t0: 0.0,
+                t1: 0.0,
+            };
+            cam.build(para);
+        }
+        7 => {
+            final_scene(&mut v);
+            aspect_ratio = 1.0;
+            width = 800;
+            samples_per_pixel = 50;
+            background = Vec3(0.0, 0.0, 0.0);
+            let lookfrom1 = Vec3(478.0, 278.0, -600.0);
             let lookat1 = Vec3(278.0, 278.0, 0.0);
             let para = Camerapara {
                 lookfrom: lookfrom1,

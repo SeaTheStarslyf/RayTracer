@@ -401,3 +401,212 @@ pub fn cornell_box(v: &mut Vec<Object>) {
     };
     v.push((Arc::new(f), Arc::new(frg)));
 }
+
+pub fn final_scene(v: &mut Vec<Object>) {
+    let groundcolor = Solidcolor {
+        color: Vec3(0.48, 0.83, 0.53),
+    };
+    let ground = Lambertian {
+        albebo: Arc::new(groundcolor.clone()),
+    };
+
+    let b = Sphere {
+        cent: Vec3(0.0, 2.0, 0.0),
+        radi: 2.0,
+    };
+
+    let boxed_per_side = 20;
+    for i in 0..boxed_per_side {
+        for j in 0..boxed_per_side {
+            let w = 100.0;
+            let x0 = -1000.0 + i as f64 * w;
+            let z0 = -1000.0 + j as f64 * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = random_double(1.0, 101.0);
+            let z1 = z0 + w;
+
+            let randians = degrees_to_radians(0.0);
+            let sin_theta1 = randians.sin();
+            let cos_theta1 = randians.cos();
+            let rotatey = Rotatey {
+                ptr: Arc::new(b.clone()),
+                sin_theta: sin_theta1,
+                cos_theta: cos_theta1,
+            };
+            let translate1 = Translate {
+                ptr: Arc::new(b.clone()),
+                offset: Vec3(0.0, 0.0, 0.0),
+            };
+            let mut box1 = Box {
+                box_max: Vec3(0.0, 0.0, 0.0),
+                box_min: Vec3(0.0, 0.0, 0.0),
+                sides: Vec::new(),
+                rotat: Arc::new(rotatey.clone()),
+                trans: Arc::new(translate1.clone()),
+            };
+            box1.buildbox(
+                Vec3(x0, y0, z0),
+                Vec3(x1, y1, z1),
+                Arc::new(groundcolor.clone()),
+            );
+            v.push((Arc::new(ground.clone()), Arc::new(box1)));
+        }
+    }
+
+    let light = Solidcolor {
+        color: Vec3(7.0, 7.0, 7.0),
+    };
+    let a = Diffuselight {
+        emit: Arc::new(light),
+    };
+    let b = Xzrect {
+        x0: 123.0,
+        x1: 423.0,
+        z0: 147.0,
+        z1: 412.0,
+        k: 554.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let center11 = Vec3(400.0, 400.0, 200.0);
+    let center22 = add(center11, Vec3(30.0, 0.0, 0.0));
+
+    let texture = Solidcolor {
+        color: Vec3(0.7, 0.3, 0.1),
+    };
+    let a = Lambertian {
+        albebo: Arc::new(texture),
+    };
+    let b = MovingSphere {
+        center0: center11,
+        center1: center22,
+        time0: 0.0,
+        time1: 1.0,
+        radius: 50.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(260.0, 150.0, 45.0),
+        radi: 50.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let a = Metal {
+        albebo: Vec3(0.8, 0.8, 0.9),
+        fuzz: 1.0,
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, 150.0, 145.0),
+        radi: 50.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(360.0, 150.0, 145.0),
+        radi: 70.0,
+    };
+    v.push((Arc::new(a.clone()), Arc::new(b.clone())));
+
+    let col = Solidcolor {
+        color: Vec3(0.2, 0.4, 0.9),
+    };
+    /*     let a = Lambertian {
+        albebo: Arc::new(col.clone()),
+    };*/
+    let f = Isotropic {
+        albebo: Arc::new(col),
+    };
+    let frg = Constantmedium {
+        boundary: Arc::new(b),
+        phase_function: Arc::new(f),
+        neg_inv_density: -1.0 / 0.2,
+    };
+    v.push((Arc::new(a), Arc::new(frg)));
+
+    let a = Dielectric { ref_idx: 1.5 };
+    let b = Sphere {
+        cent: Vec3(0.0, 0.0, 0.0),
+        radi: 5000.0,
+    };
+    let col = Solidcolor {
+        color: Vec3(1.0, 1.0, 1.0),
+    };
+    let f = Isotropic {
+        albebo: Arc::new(col),
+    };
+    let frg = Constantmedium {
+        boundary: Arc::new(b),
+        phase_function: Arc::new(f),
+        neg_inv_density: -1.0 / 0.0001,
+    };
+    v.push((Arc::new(a), Arc::new(frg)));
+
+    let mut texture = Imagetexture {
+        data: None,
+        width: 0,
+        height: 0,
+    };
+    texture.build("raytracer/sources/earthmap.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(400.0, 200.0, 400.0),
+        radi: 100.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let mut perlin = Perlin {
+        ranvec: [Vec3(0.0, 0.0, 0.0); POINT_COUNT as usize],
+        perm_x: [0; POINT_COUNT as usize],
+        perm_y: [0; POINT_COUNT as usize],
+        perm_z: [0; POINT_COUNT as usize],
+    };
+    perlin.build();
+    let texture = Noisetexture {
+        noise: perlin,
+        scale: 0.1,
+    };
+    let a = Lambertian {
+        albebo: Arc::new(texture),
+    };
+    let b = Sphere {
+        cent: Vec3(220.0, 280.0, 300.0),
+        radi: 80.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let whitecolor = Solidcolor {
+        color: Vec3(0.73, 0.73, 0.73),
+    };
+    let white = Lambertian {
+        albebo: Arc::new(whitecolor),
+    };
+    let ns = 1000;
+    for _j in 0..ns {
+        let b = Sphere {
+            cent: random_vector(0.0, 165.0),
+            radi: 10.0,
+        };
+
+        let randians = degrees_to_radians(15.0);
+        let sin_theta1 = randians.sin();
+        let cos_theta1 = randians.cos();
+        let mut rotatey = Rotatey {
+            ptr: Arc::new(b.clone()),
+            sin_theta: sin_theta1,
+            cos_theta: cos_theta1,
+        };
+        let mut translate1 = Translate {
+            ptr: Arc::new(b.clone()),
+            offset: Vec3(-100.0, 270.0, 395.0),
+        };
+        rotatey.ptr = Arc::new(b.clone());
+        translate1.ptr = Arc::new(rotatey);
+        v.push((Arc::new(white.clone()), Arc::new(translate1)));
+    }
+}
