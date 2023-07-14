@@ -38,6 +38,11 @@ pub struct Diffuselight {
     pub emit: Arc<dyn Texture>,
 }
 
+#[derive(Clone)]
+pub struct Isotropic {
+    pub albebo: Arc<dyn Texture>,
+}
+
 impl Material for Lambertian {
     fn scatter(
         &self,
@@ -166,5 +171,26 @@ impl Material for Diffuselight {
     }
     fn emitted(&self, u: f64, v: f64, p: Vec3) -> Vec3 {
         self.emit.value(u, v, p)
+    }
+}
+
+impl Material for Isotropic {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &Hitrecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        *scattered = Ray {
+            ori: rec.p,
+            dir: random_in_unit_sphere(),
+            tm: r_in.tm,
+        };
+        *attenuation = self.albebo.value(rec.u, rec.v, rec.p);
+        true
+    }
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
     }
 }

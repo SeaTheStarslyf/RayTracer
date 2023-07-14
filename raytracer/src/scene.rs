@@ -229,7 +229,7 @@ pub fn simple_light(v: &mut Vec<Object>) {
 
 pub fn cornell_box(v: &mut Vec<Object>) {
     let light = Solidcolor {
-        color: Vec3(15.0, 15.0, 15.0),
+        color: Vec3(7.0, 7.0, 7.0),
     };
     let red = Solidcolor {
         color: Vec3(0.65, 0.05, 0.05),
@@ -267,10 +267,10 @@ pub fn cornell_box(v: &mut Vec<Object>) {
         emit: Arc::new(light),
     };
     let b = Xzrect {
-        x0: 213.0,
-        x1: 343.0,
-        z0: 227.0,
-        z1: 332.0,
+        x0: 113.0,
+        x1: 443.0,
+        z0: 127.0,
+        z1: 432.0,
         k: 554.0,
     };
     v.push((Arc::new(a), Arc::new(b)));
@@ -308,9 +308,9 @@ pub fn cornell_box(v: &mut Vec<Object>) {
     };
     v.push((Arc::new(a), Arc::new(b.clone())));
 
-    let a = Lambertian {
+    /*    let a = Lambertian {
         albebo: Arc::new(white.clone()),
-    };
+    };*/
     let randians = degrees_to_radians(15.0);
     let sin_theta1 = randians.sin();
     let cos_theta1 = randians.cos();
@@ -319,28 +319,28 @@ pub fn cornell_box(v: &mut Vec<Object>) {
         sin_theta: sin_theta1,
         cos_theta: cos_theta1,
     };
-    let mut translate = Translate {
-        ptr: Arc::new(b),
+    let mut translate1 = Translate {
+        ptr: Arc::new(b.clone()),
         offset: Vec3(265.0, 0.0, 295.0),
     };
-    let mut b = Box {
+    let mut box1 = Box {
         box_max: Vec3(0.0, 0.0, 0.0),
         box_min: Vec3(0.0, 0.0, 0.0),
         sides: Vec::new(),
         rotat: Arc::new(rotatey.clone()),
-        trans: Arc::new(translate.clone()),
+        trans: Arc::new(translate1.clone()),
     };
-    b.buildbox(
+    box1.buildbox(
         Vec3(0.0, 0.0, 0.0),
         Vec3(165.0, 330.0, 165.0),
         Arc::new(white.clone()),
     );
-    rotatey.ptr = Arc::new(b.clone());
-    translate.ptr = Arc::new(rotatey);
-    v.push((Arc::new(a), Arc::new(translate)));
-    let a = Lambertian {
+    rotatey.ptr = Arc::new(box1.clone());
+    translate1.ptr = Arc::new(rotatey);
+    //    v.push((Arc::new(a), Arc::new(translate)));
+    /*    let a = Lambertian {
         albebo: Arc::new(white.clone()),
-    };
+    };*/
     let randians = degrees_to_radians(-18.0);
     let sin_theta1 = randians.sin();
     let cos_theta1 = randians.cos();
@@ -349,23 +349,55 @@ pub fn cornell_box(v: &mut Vec<Object>) {
         sin_theta: sin_theta1,
         cos_theta: cos_theta1,
     };
-    let mut translate = Translate {
+    let mut translate2 = Translate {
         ptr: Arc::new(b),
         offset: Vec3(130.0, 0.0, 65.0),
     };
-    let mut b = Box {
+    let mut box2 = Box {
         box_max: Vec3(0.0, 0.0, 0.0),
         box_min: Vec3(0.0, 0.0, 0.0),
         sides: Vec::new(),
         rotat: Arc::new(rotatey.clone()),
-        trans: Arc::new(translate.clone()),
+        trans: Arc::new(translate2.clone()),
     };
-    b.buildbox(
+    box2.buildbox(
         Vec3(0.0, 0.0, 0.0),
         Vec3(165.0, 165.0, 165.0),
         Arc::new(white),
     );
-    rotatey.ptr = Arc::new(b.clone());
-    translate.ptr = Arc::new(rotatey);
-    v.push((Arc::new(a), Arc::new(translate)));
+    rotatey.ptr = Arc::new(box2.clone());
+    translate2.ptr = Arc::new(rotatey);
+    //    v.push((Arc::new(a), Arc::new(translate)));
+
+    let col = Solidcolor {
+        color: Vec3(0.0, 0.0, 0.0),
+    };
+    /*    let a = Lambertian {
+        albebo: Arc::new(col.clone()),
+    };*/
+    let f = Isotropic {
+        albebo: Arc::new(col),
+    };
+    let frg = Constantmedium {
+        boundary: Arc::new(translate1),
+        phase_function: Arc::new(f.clone()),
+        neg_inv_density: -1.0 / 0.01,
+    };
+    v.push((Arc::new(f), Arc::new(frg)));
+
+    let col = Solidcolor {
+        color: Vec3(1.0, 1.0, 1.0),
+    };
+    /*     let a = Lambertian {
+        albebo: Arc::new(col.clone()),
+    };*/
+    let f = Isotropic {
+        albebo: Arc::new(col),
+    };
+    let frg = Constantmedium {
+        boundary: Arc::new(translate2),
+        phase_function: Arc::new(f.clone()),
+        neg_inv_density: -1.0 / 0.01,
+    };
+    v.push((Arc::new(f), Arc::new(frg)));
 }

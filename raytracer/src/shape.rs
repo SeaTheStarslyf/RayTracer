@@ -81,7 +81,11 @@ pub struct Rotatey {
 }
 
 #[derive(Clone)]
-pub struct Constantmedium {}
+pub struct Constantmedium {
+    pub boundary: Arc<dyn Shape>,
+    pub phase_function: Arc<dyn Material>,
+    pub neg_inv_density: f64,
+}
 
 impl Shape for Sphere {
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
@@ -476,6 +480,92 @@ impl Shape for Rotatey {
         Vec3(0.0, 0.0, 0.0)
     }
     fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+}
+
+impl Shape for Constantmedium {
+    fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
+        // Print occasional samples when debugging. To enable, set enableDebug true.
+        //let enableDebug = false;
+        //let debugging = enableDebug && random_double(0.0, 1.0) < 0.00001;
+
+        let mut rec1 = Hitrecord {
+            p: Vec3(0.0, 0.0, 0.0),
+            normal: Vec3(0.0, 0.0, 0.0),
+            t: -1.0,
+            u: 0.0,
+            v: 0.0,
+            front_face: false,
+            num: -1,
+        };
+        let mut rec2 = Hitrecord {
+            p: Vec3(0.0, 0.0, 0.0),
+            normal: Vec3(0.0, 0.0, 0.0),
+            t: -1.0,
+            u: 0.0,
+            v: 0.0,
+            front_face: false,
+            num: -1,
+        };
+
+        let maxn = 0x10000000 as f64;
+        let minn = -maxn;
+        if !self
+            .boundary
+            .gethit(r, &mut rec1, minn, 0x10000000 as f64, js)
+        {
+            return false;
+        }
+
+        if !self
+            .boundary
+            .gethit(r, &mut rec2, rec1.t + 0.0001, 0x10000000 as f64, js)
+        {
+            return false;
+        }
+
+        if rec1.t < t_min {
+            rec1.t = t_min;
+        }
+        if rec2.t > t_max {
+            rec2.t = t_max;
+        }
+
+        if rec1.t >= rec2.t {
+            return false;
+        }
+
+        if rec1.t < 0.0 {
+            rec1.t = 0.0;
+        }
+
+        let ray_length = dot(r.dir, r.dir).sqrt();
+        let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
+        let hit_distance = self.neg_inv_density * random_double(0.0, 1.0).ln();
+
+        if hit_distance > distance_inside_boundary {
+            return false;
+        }
+
+        rec.t = rec1.t + hit_distance / ray_length;
+        rec.p = r.at(rec.t);
+
+        rec.normal = Vec3(1.0, 0.0, 0.0);
+        rec.front_face = true;
+        rec.num = js;
+
+        true
+    }
+    fn center(&self, _time: f64) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
     fn getmax(&self) -> Vec3 {
         Vec3(0.0, 0.0, 0.0)
     }
