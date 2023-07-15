@@ -404,7 +404,7 @@ pub fn cornell_box(v: &mut Vec<Object>) {
 }
 
 pub fn final_scene(v: &mut Vec<Object>) {
-/*    let groundcolor = Solidcolor {
+    /*    let groundcolor = Solidcolor {
         color: Vec3(0.48, 0.83, 0.53),
     };
     let ground = Lambertian {
@@ -454,7 +454,7 @@ pub fn final_scene(v: &mut Vec<Object>) {
             v.push((Arc::new(ground.clone()), Arc::new(box1)));
         }
     }*/
-/*    let texture = Solidcolor {
+    /*    let texture = Solidcolor {
         color: Vec3(0.48, 0.83, 0.53),
     };
     let a = Lambertian {

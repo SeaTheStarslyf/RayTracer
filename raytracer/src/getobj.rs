@@ -1,8 +1,8 @@
 use crate::material::*;
-use crate::ray::*;
+//use crate::ray::*;
 use crate::shape::*;
 use crate::vec3::*;
-use image::imageops::FilterType::Triangle;
+//use image::imageops::FilterType::Triangle;
 use std::sync::Arc;
 use tobj::{load_obj, LoadOptions};
 
@@ -16,7 +16,7 @@ pub fn getobject(v: &mut Vec<Object>, filename: &str) {
         let mesh = &model.mesh;
 
         // 遍历每个面的顶点索引
-        for face in (0..mesh.indices.len()-2).step_by(3) {
+        for face in (0..mesh.indices.len() - 2).step_by(3) {
             // 获取三角形的顶点索引
             //                let vertex_indices = (face[0], face[1], face[2]);
 
@@ -49,7 +49,7 @@ pub fn getobject(v: &mut Vec<Object>, filename: &str) {
             let vz = positions.2;
 
             // 获取三角形的顶点颜色
-/*           let color_indices = (
+            /*           let color_indices = (
                 vertex_indices.0 as usize,
                 vertex_indices.1 as usize,
                 vertex_indices.2 as usize,

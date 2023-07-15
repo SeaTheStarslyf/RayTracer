@@ -597,7 +597,7 @@ impl Shape for Triangle1 {
         let s = reduce(r.ori, self.v0);
         let u = f * dot(s, h);
 
-        if u < 0.0 || u > 1.0 {
+        if !(0.0..=1.0).contains(&u) {
             return false;
         }
 
