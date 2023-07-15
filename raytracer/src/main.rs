@@ -20,7 +20,8 @@ use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 //use std::f64::consts::PI;
 use std::sync::{Arc, Mutex};
-use std::thread;
+//use std::thread;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{fs::File, process::exit};
 
 type Object = (Arc<dyn Material>, Arc<dyn Shape>);
@@ -215,7 +216,7 @@ fn main() {
             final_scene(&mut v);
             aspect_ratio = 1.0;
             width = 800;
-            samples_per_pixel = 500;
+            samples_per_pixel = 100;
             background = Vec3(0.0, 0.0, 0.0);
             let lookfrom1 = Vec3(478.0, 278.0, -600.0);
             let lookat1 = Vec3(278.0, 278.0, 0.0);
@@ -249,17 +250,18 @@ fn main() {
     let threads = 6; // 获取可用CPU核心数
     let rows_per_thread = height as f64 / threads as f64;
     //    let threads = num_cpus::get();
+    let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
-    let handles: Vec<_> = (0..threads)
-        .map(|tid| {
+    pool.scope(|s| {
+        (0..threads).into_par_iter().for_each(|tid| {
             let img = Arc::clone(&img);
             let shared_v = Arc::clone(&shared_v);
             let cam = cam;
             let progress = progress.clone();
+            let start_row = (tid as f64 * rows_per_thread) as u32;
+            let end_row = ((tid + 1) as f64 * rows_per_thread) as u32;
 
-            thread::spawn(move || {
-                let start_row = (tid as f64 * rows_per_thread) as u32;
-                let end_row = ((tid + 1) as f64 * rows_per_thread) as u32;
+            s.spawn(move |_| {
                 let mut locked_img = img.lock().unwrap();
                 let v = shared_v.lock().unwrap();
                 for j in (start_row..end_row).rev() {
@@ -280,13 +282,9 @@ fn main() {
                     }
                     progress.inc(threads as u64);
                 }
-            })
-        })
-        .collect();
-
-    for handle in handles {
-        handle.join().unwrap();
-    }
+            });
+        });
+    });
 
     progress.finish();
 
