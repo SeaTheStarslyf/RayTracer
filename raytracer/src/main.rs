@@ -1,4 +1,5 @@
 mod camera;
+mod getobj;
 mod material;
 mod perlin;
 mod ray;
@@ -215,8 +216,8 @@ fn main() {
         7 => {
             final_scene(&mut v);
             aspect_ratio = 1.0;
-            width = 800;
-            samples_per_pixel = 100;
+            width = 400;
+            samples_per_pixel = 50;
             background = Vec3(0.0, 0.0, 0.0);
             let lookfrom1 = Vec3(478.0, 278.0, -600.0);
             let lookat1 = Vec3(278.0, 278.0, 0.0);

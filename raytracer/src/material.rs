@@ -21,6 +21,10 @@ pub struct Lambertian {
     //    pub name: Name,
 }
 
+pub struct Objlambertian {
+    pub color: Vec3,
+}
+
 #[derive(Clone)]
 pub struct Metal {
     pub albebo: Vec3,
@@ -61,6 +65,31 @@ impl Material for Lambertian {
         };
         *scattered = ray;
         *attenuation = self.albebo.value(rec.u, rec.v, rec.p);
+        true
+    }
+    fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+}
+
+impl Material for Objlambertian {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &Hitrecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        let _none: Vec3 = r_in.ori;
+
+        let scatter_direction: Vec3 = add(rec.normal, random_unit_vector());
+        let ray = Ray {
+            ori: rec.p,
+            dir: scatter_direction,
+            tm: r_in.tm,
+        };
+        *scattered = ray;
+        *attenuation = self.color;
         true
     }
     fn emitted(&self, _u: f64, _v: f64, _p: Vec3) -> Vec3 {

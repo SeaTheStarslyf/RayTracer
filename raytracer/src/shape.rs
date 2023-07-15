@@ -87,6 +87,13 @@ pub struct Constantmedium {
     pub neg_inv_density: f64,
 }
 
+#[derive(Clone)]
+pub struct Triangle1 {
+    pub v0: Vec3,
+    pub v1: Vec3,
+    pub v2: Vec3,
+}
+
 impl Shape for Sphere {
     fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
         let center: Vec3 = self.cent;
@@ -560,6 +567,68 @@ impl Shape for Constantmedium {
         rec.num = js;
 
         true
+    }
+    fn center(&self, _time: f64) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn buildbox(&mut self, _p0: Vec3, _p1: Vec3, _texture: Arc<dyn Texture>) {}
+    fn buildrotate(&mut self, _p: Arc<dyn Shape>, _angle: f64) {}
+    fn getmax(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+    fn getmin(&self) -> Vec3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
+}
+
+impl Shape for Triangle1 {
+    fn gethit(&self, r: Ray, rec: &mut Hitrecord, t_min: f64, t_max: f64, js: i32) -> bool {
+        let edge1 = reduce(self.v1, self.v0);
+        let edge2 = reduce(self.v2, self.v0);
+
+        let h = cross(r.dir, edge2);
+        let a = dot(edge1, h);
+
+        if a > -t_min && a < t_min {
+            return false;
+        }
+
+        let f = 1.0 / a;
+        let s = reduce(r.ori, self.v0);
+        let u = f * dot(s, h);
+
+        if u < 0.0 || u > 1.0 {
+            return false;
+        }
+
+        let q = cross(s, edge1);
+        let v = f * dot(r.dir, q);
+
+        if v < 0.0 || u + v > 1.0 {
+            return false;
+        }
+
+        let t = f * dot(edge2, q);
+
+        if t > t_min && t < t_max {
+            let p = r.at(t);
+            let nor = cross(edge1, edge2);
+            let normal = divis(nor, dot(nor, nor).sqrt());
+
+            rec.t = t;
+            rec.p = p;
+            rec.num = js;
+            rec.set_face_normal(r, normal);
+            let v0p = reduce(p, self.v0);
+            let denom = dot(edge1, edge1) * dot(edge2, edge2) - dot(edge1, edge2).powi(2);
+            rec.u =
+                (dot(v0p, edge1) * dot(edge2, edge2) - dot(v0p, edge2) * dot(edge1, edge2)) / denom;
+            rec.v =
+                (dot(v0p, edge2) * dot(edge1, edge1) - dot(v0p, edge1) * dot(edge1, edge2)) / denom;
+
+            return true;
+        }
+        false
     }
     fn center(&self, _time: f64) -> Vec3 {
         Vec3(0.0, 0.0, 0.0)

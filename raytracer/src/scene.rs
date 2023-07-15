@@ -1,3 +1,4 @@
+use crate::getobj::getobject;
 use crate::material::*;
 use crate::perlin::Perlin;
 use crate::shape::*;
@@ -403,7 +404,7 @@ pub fn cornell_box(v: &mut Vec<Object>) {
 }
 
 pub fn final_scene(v: &mut Vec<Object>) {
-    let groundcolor = Solidcolor {
+/*    let groundcolor = Solidcolor {
         color: Vec3(0.48, 0.83, 0.53),
     };
     let ground = Lambertian {
@@ -452,10 +453,21 @@ pub fn final_scene(v: &mut Vec<Object>) {
             );
             v.push((Arc::new(ground.clone()), Arc::new(box1)));
         }
-    }
+    }*/
+/*    let texture = Solidcolor {
+        color: Vec3(0.48, 0.83, 0.53),
+    };
+    let a = Lambertian {
+        albebo: Arc::new(texture),
+    };
+    let b = Sphere {
+        cent: Vec3(0.0, -1000.0, 0.0),
+        radi: 1000.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));*/
 
     let light = Solidcolor {
-        color: Vec3(7.0, 7.0, 7.0),
+        color: Vec3(10.0, 10.0, 10.0),
     };
     let a = Diffuselight {
         emit: Arc::new(light),
@@ -583,7 +595,7 @@ pub fn final_scene(v: &mut Vec<Object>) {
     let white = Lambertian {
         albebo: Arc::new(whitecolor),
     };
-    let ns = 1000;
+    let ns = 0;
     for _j in 0..ns {
         let b = Sphere {
             cent: random_vector(0.0, 165.0),
@@ -606,4 +618,6 @@ pub fn final_scene(v: &mut Vec<Object>) {
         translate1.ptr = Arc::new(rotatey);
         v.push((Arc::new(white.clone()), Arc::new(translate1)));
     }
+
+    getobject(v, "raytracer/sources/Air_Balloon.obj");
 }
