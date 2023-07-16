@@ -312,7 +312,7 @@ pub fn cornell_box(v: &mut Vec<Object>) {
     /*    let a = Lambertian {
         albebo: Arc::new(white.clone()),
     };*/
-    let randians = degrees_to_radians(15.0);
+ /* let randians = degrees_to_radians(15.0);
     let sin_theta1 = randians.sin();
     let cos_theta1 = randians.cos();
     let mut rotatey = Rotatey {
@@ -400,11 +400,13 @@ pub fn cornell_box(v: &mut Vec<Object>) {
         phase_function: Arc::new(f.clone()),
         neg_inv_density: -1.0 / 0.01,
     };
-    v.push((Arc::new(f), Arc::new(frg)));
+    v.push((Arc::new(f), Arc::new(frg)));*/
+
+    getobject(v, "raytracer/sources/block.obj");
 }
 
 pub fn final_scene(v: &mut Vec<Object>) {
-    /*    let groundcolor = Solidcolor {
+    let groundcolor = Solidcolor {
         color: Vec3(0.48, 0.83, 0.53),
     };
     let ground = Lambertian {
@@ -453,7 +455,7 @@ pub fn final_scene(v: &mut Vec<Object>) {
             );
             v.push((Arc::new(ground.clone()), Arc::new(box1)));
         }
-    }*/
+    }
     /*    let texture = Solidcolor {
         color: Vec3(0.48, 0.83, 0.53),
     };
@@ -620,4 +622,103 @@ pub fn final_scene(v: &mut Vec<Object>) {
     }
 
     getobject(v, "raytracer/sources/Air_Balloon.obj");
+}
+
+pub fn sun(v: &mut Vec<Object>) {
+    let texture = Solidcolor {
+        color: Vec3(100.0, 100.0, 100.0),
+    };
+    let a = Diffuselight {
+        emit: Arc::new(texture),
+    };
+    let b = Sphere {
+        cent: Vec3(-50.0, -7.0, 3.0),
+        radi: 12.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    let mut texture = Imagetexture {
+        data: None,
+        width: 0,
+        height: 0,
+    };
+    texture.build("raytracer/sources/earthmap.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(-26.0, 2.0, -10.0),
+        radi: 0.8,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    texture.build("raytracer/sources/watermap.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(-50.0, 3.0, -8.0),
+        radi: 0.7,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    texture.build("raytracer/sources/metal.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(-30.0, -2.0, -9.0),
+        radi: 1.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    texture.build("raytracer/sources/mars.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(-13.0, -3.0, -8.0),
+        radi: 1.0,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    texture.build("raytracer/sources/wood.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(-3.0, -2.0, -7.0),
+        radi: 2.4,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    texture.build("raytracer/sources/tu.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(-2.0, 1.8, -10.0),
+        radi: 1.8,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+    texture.build("raytracer/sources/sky.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(4.8, -1.5, -7.0),
+        radi: 0.45,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
+
+ texture.build("raytracer/sources/sea.jpg");
+    let a = Lambertian {
+        albebo: Arc::new(texture.clone()),
+    };
+    let b = Sphere {
+        cent: Vec3(2.5, 1.8, -10.0),
+        radi: 0.3,
+    };
+    v.push((Arc::new(a), Arc::new(b)));
 }

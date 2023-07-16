@@ -11,6 +11,8 @@ type Object = (Arc<dyn Material>, Arc<dyn Shape>);
 pub fn getobject(v: &mut Vec<Object>, filename: &str) {
     let (models, _) = load_obj(filename, &LoadOptions::default()).unwrap();
 
+    let x = -100.0;
+    let y = 100.0;
     // 遍历所有模型
     for model in models {
         let mesh = &model.mesh;
@@ -29,18 +31,18 @@ pub fn getobject(v: &mut Vec<Object>, filename: &str) {
 
             let positions = (
                 Vec3(
-                    mesh.positions[(vertex_indices.0 * 3) as usize] as f64,
-                    mesh.positions[(vertex_indices.0 * 3 + 1) as usize] as f64,
+                    mesh.positions[(vertex_indices.0 * 3) as usize] as f64 + x,
+                    mesh.positions[(vertex_indices.0 * 3 + 1) as usize] as f64 + y,
                     mesh.positions[(vertex_indices.0 * 3 + 2) as usize] as f64,
                 ),
                 Vec3(
-                    mesh.positions[(vertex_indices.1 * 3) as usize] as f64,
-                    mesh.positions[(vertex_indices.1 * 3 + 1) as usize] as f64,
+                    mesh.positions[(vertex_indices.1 * 3) as usize] as f64 + x,
+                    mesh.positions[(vertex_indices.1 * 3 + 1) as usize] as f64 + y,
                     mesh.positions[(vertex_indices.1 * 3 + 2) as usize] as f64,
                 ),
                 Vec3(
-                    mesh.positions[(vertex_indices.2 * 3) as usize] as f64,
-                    mesh.positions[(vertex_indices.2 * 3 + 1) as usize] as f64,
+                    mesh.positions[(vertex_indices.2 * 3) as usize] as f64 + x,
+                    mesh.positions[(vertex_indices.2 * 3 + 1) as usize] as f64 + y,
                     mesh.positions[(vertex_indices.2 * 3 + 2) as usize] as f64,
                 ),
             );
