@@ -238,7 +238,7 @@ fn main() {
             sun(&mut v);
             aspect_ratio = 20.0 / 5.0;
             width = 2000;
-            samples_per_pixel = 50000;
+            samples_per_pixel = 5000;
 //            background = Vec3(0.7, 0.7, 0.7);
             background = Vec3(0.0, 0.0, 0.0);
             let lookfrom1 = Vec3(13.0, 2.0, 5.0);
